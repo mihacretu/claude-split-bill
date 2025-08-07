@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const foodItems = [
   {
@@ -101,8 +102,12 @@ export default function SplitScreen() {
             >
               {person.isAddButton ? (
                 <>
-                  <View style={styles.addIconContainer}>
-                    <Text style={styles.addIcon}>+</Text>
+                  <View style={[styles.avatarContainer, styles.addPersonContainer]}>
+                    <Ionicons 
+                      name="person-add" 
+                      size={32} 
+                      color="#666" 
+                    />
                   </View>
                 </>
               ) : (
@@ -234,13 +239,24 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   addPersonCard: {
-    paddingVertical: 16,
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-    borderStyle: 'dashed',
-    borderWidth: 2,
-    borderColor: '#d0d0d0',
-    shadowOpacity: 0.02,
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+    borderRadius: 12,
+    paddingTop: 12,
+    paddingBottom: 8,
+    paddingHorizontal: 8,
+    width: 100,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   selectedPersonCard: {
     backgroundColor: '#f8f8f8',
@@ -282,24 +298,15 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   itemsContainer: {
-    marginTop: 2,
+    marginTop: 8,
   },
   personItemImage: {
     width: 50,
     height: 32,
     borderRadius: 6,
   },
-  addIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
+  addPersonContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  addIcon: {
-    fontSize: 24,
-    color: '#999',
-    fontWeight: '300',
   },
 });
