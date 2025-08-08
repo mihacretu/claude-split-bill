@@ -62,11 +62,17 @@ const people = [
   }
 ];
 
-const DraggableFoodItem = ({ item, isAssigned }) => {
+const DraggableFoodItem = ({ item, assignmentInfo }) => {
   console.log('🎨 Rendering draggable food item:', item.name);
   
+  const getBackgroundStyle = () => {
+    if (!assignmentInfo.isAssigned) return null;
+    if (assignmentInfo.isShared) return styles.foodItemShared;
+    return styles.foodItemAssigned;
+  };
+  
   return (
-    <View style={[styles.foodItem, isAssigned && styles.foodItemAssigned]}>
+    <View style={[styles.foodItem, getBackgroundStyle()]}>
       <Draggable 
         data={item}
         style={styles.draggableImageContainer}
@@ -74,19 +80,21 @@ const DraggableFoodItem = ({ item, isAssigned }) => {
         <Image source={{ uri: item.image }} style={styles.foodImage} />
       </Draggable>
       <Text style={styles.quantity}>{item.quantity} ×</Text>
-      <Text style={[styles.foodName, isAssigned && styles.assignedText]}>{item.name}</Text>
-      <Text style={[styles.foodPrice, isAssigned && styles.assignedText]}>{item.price}</Text>
+      <Text style={styles.foodName}>{item.name}</Text>
+      <Text style={styles.foodPrice}>{item.price}</Text>
     </View>
   );
 };
 
-const PersonCard = ({ person, assignments, onDrop }) => {
+const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo }) => {
   const assignedItems = assignments[person.id] || [];
   
-  // Calculate total amount for assigned items
+  // Calculate total amount for assigned items (split shared items)
   const assignedTotal = assignedItems.reduce((sum, item) => {
     const price = parseFloat(item.price.replace('$', '')) || 0;
-    return sum + price;
+    const assignmentInfo = getItemAssignmentInfo(item.id);
+    const splitPrice = assignmentInfo.count > 1 ? price / assignmentInfo.count : price;
+    return sum + splitPrice;
   }, 0);
   
   // Add original person amount if exists
@@ -125,13 +133,20 @@ const PersonCard = ({ person, assignments, onDrop }) => {
       
       <View style={styles.itemsContainer}>
         {/* Show existing assigned items with proper spacing */}
-        {assignedItems.map((item, index) => (
-          <Image 
-            key={`assigned-${item.id}-${index}`}
-            source={{ uri: item.image }} 
-            style={[styles.personItemImage, { marginRight: index < assignedItems.length - 1 ? 8 : 0 }]} 
-          />
-        ))}
+        {assignedItems.map((item, index) => {
+          const assignmentInfo = getItemAssignmentInfo(item.id);
+          return (
+            <View key={`assigned-${item.id}-${index}`} style={styles.personImageContainer}>
+              <Image 
+                source={{ uri: item.image }} 
+                style={[styles.personItemImage, { marginRight: index < assignedItems.length - 1 ? 8 : 0 }]} 
+              />
+              {assignmentInfo.isShared && (
+                <View style={styles.sharedIndicator} />
+              )}
+            </View>
+          );
+        })}
         
         {/* Show original food item if person already has food */}
         {person.hasFood && !assignedItems.length && (
@@ -152,12 +167,37 @@ export default function SplitScreen() {
     console.log('🎯 Drop event:', draggedItem?.name, 'on', targetPerson?.name);
     
     if (draggedItem && targetPerson && !targetPerson.isAddButton) {
+      // Check if person already has this item
+      const currentAssignments = assignments[targetPerson.id] || [];
+      const alreadyHasItem = currentAssignments.some(item => item.id === draggedItem.id);
+      
+      if (alreadyHasItem) {
+        console.log('❌ Person already has this item');
+        return; // Don't assign if already has the item
+      }
+      
       console.log('✅ Assigning item to person');
       setAssignments(prev => ({
         ...prev,
         [targetPerson.id]: [...(prev[targetPerson.id] || []), draggedItem]
       }));
     }
+  };
+
+  // Get assignment counts for each item
+  const getItemAssignmentInfo = (itemId) => {
+    const assignedPeople = [];
+    Object.entries(assignments).forEach(([personId, items]) => {
+      if (items.some(item => item.id === itemId)) {
+        assignedPeople.push(personId);
+      }
+    });
+    return {
+      count: assignedPeople.length,
+      people: assignedPeople,
+      isAssigned: assignedPeople.length > 0,
+      isShared: assignedPeople.length > 1
+    };
   };
 
   // Get all assigned item IDs to check assignment status
@@ -181,7 +221,7 @@ export default function SplitScreen() {
               <DraggableFoodItem 
                 key={item.id} 
                 item={item}
-                isAssigned={assignedItemIds.includes(item.id)}
+                assignmentInfo={getItemAssignmentInfo(item.id)}
               />
             ))}
           </View>
@@ -200,6 +240,7 @@ export default function SplitScreen() {
                 person={person}
                 assignments={assignments}
                 onDrop={handleDrop}
+                getItemAssignmentInfo={getItemAssignmentInfo}
               />
             ))}
           </ScrollView>
@@ -428,13 +469,28 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#4a90e2',
-    opacity: 0.7,
   },
-  assignedText: {
-    color: '#666',
-    textDecorationLine: 'line-through',
+  foodItemShared: {
+    backgroundColor: '#fff4e6',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ff8c00',
   },
   draggableImageContainer: {
     zIndex: 1,
+  },
+  personImageContainer: {
+    position: 'relative',
+  },
+  sharedIndicator: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#ff8c00',
+    borderWidth: 1,
+    borderColor: '#fff',
   },
 });
