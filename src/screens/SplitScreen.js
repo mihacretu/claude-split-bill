@@ -82,6 +82,16 @@ const DraggableFoodItem = ({ item, isAssigned }) => {
 
 const PersonCard = ({ person, assignments, onDrop }) => {
   const assignedItems = assignments[person.id] || [];
+  
+  // Calculate total amount for assigned items
+  const assignedTotal = assignedItems.reduce((sum, item) => {
+    const price = parseFloat(item.price.replace('$', '')) || 0;
+    return sum + price;
+  }, 0);
+  
+  // Add original person amount if exists
+  const originalAmount = person.amount ? parseFloat(person.amount) : 0;
+  const totalAmount = (originalAmount + assignedTotal).toFixed(2);
 
   console.log('🎯 Rendering person card:', person.name, 'assigned items:', assignedItems.length);
 
@@ -109,15 +119,17 @@ const PersonCard = ({ person, assignments, onDrop }) => {
         <Image source={{ uri: person.avatar }} style={styles.avatar} />
       </View>
       <Text style={styles.personName}>{person.name}</Text>
-      {person.amount && <Text style={styles.personAmount}>{person.amount}</Text>}
+      {(parseFloat(totalAmount) > 0 || assignedItems.length > 0 || person.hasFood) && (
+        <Text style={styles.personAmount}>{totalAmount}</Text>
+      )}
       
       <View style={styles.itemsContainer}>
-        {/* Show existing assigned items */}
+        {/* Show existing assigned items with proper spacing */}
         {assignedItems.map((item, index) => (
           <Image 
             key={`assigned-${item.id}-${index}`}
             source={{ uri: item.image }} 
-            style={[styles.personItemImage, { marginLeft: index > 0 ? -10 : 0 }]} 
+            style={[styles.personItemImage, { marginRight: index < assignedItems.length - 1 ? 8 : 0 }]} 
           />
         ))}
         
@@ -361,11 +373,16 @@ const styles = StyleSheet.create({
   },
   itemsContainer: {
     marginTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexWrap: 'wrap',
   },
   personItemImage: {
-    width: 50,
+    width: 32,
     height: 32,
     borderRadius: 6,
+    marginBottom: 4,
   },
   addPersonContainer: {
     justifyContent: 'center',
