@@ -118,13 +118,16 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo }) => {
     );
   }
 
+  const isCurrentUser = person.name === 'You';
+
   return (
     <Droppable
       droppableId={`person-${person.id}`}
       onDrop={(item) => onDrop(item, person)}
       style={[
         styles.personCard,
-        (person.hasFood || assignedItems.length > 0) && styles.personCardWithFood
+        (person.hasFood || assignedItems.length > 0) && styles.personCardWithFood,
+        isCurrentUser && styles.currentUserCard
       ]}
       activeStyle={styles.personCardActive}
     >
@@ -517,5 +520,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 3,
+  },
+  currentUserCard: {
+    borderWidth: 2,
+    borderColor: '#8b5cf6',
+    backgroundColor: '#faf7ff',
   },
 });
