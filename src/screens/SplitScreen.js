@@ -67,7 +67,10 @@ const DraggableFoodItem = ({ item, isAssigned }) => {
   
   return (
     <View style={[styles.foodItem, isAssigned && styles.foodItemAssigned]}>
-      <Draggable data={item}>
+      <Draggable 
+        data={item}
+        style={styles.draggableImageContainer}
+      >
         <Image source={{ uri: item.image }} style={styles.foodImage} />
       </Draggable>
       <Text style={styles.quantity}>{item.quantity} ×</Text>
@@ -149,7 +152,7 @@ export default function SplitScreen() {
   const assignedItemIds = Object.values(assignments).flat().map(item => item.id);
 
   return (
-    <DropProvider>
+    <DropProvider key={`provider-${assignedItemIds.length}`}>
       <SafeAreaView style={styles.container}>
         <View style={styles.cardContainer}>
           <TouchableOpacity style={styles.backButton}>
@@ -176,6 +179,8 @@ export default function SplitScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.peopleContainer}
             style={styles.peopleScrollView}
+            scrollEnabled={true}
+            nestedScrollEnabled={false}
           >
             {people.map((person) => (
               <PersonCard
@@ -411,5 +416,8 @@ const styles = StyleSheet.create({
   assignedText: {
     color: '#666',
     textDecorationLine: 'line-through',
+  },
+  draggableImageContainer: {
+    zIndex: 1,
   },
 });
