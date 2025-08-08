@@ -60,7 +60,7 @@ const people = [
   }
 ];
 
-const DraggableFoodItem = ({ item, assignmentInfo }) => {
+const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments }) => {
   console.log('🎨 Rendering draggable food item:', item.name);
   
   const getBackgroundStyle = () => {
@@ -68,6 +68,14 @@ const DraggableFoodItem = ({ item, assignmentInfo }) => {
     if (assignmentInfo.isShared) return styles.foodItemShared;
     return styles.foodItemAssigned;
   };
+
+  // Calculate assigned quantities for this item
+  const assignedQuantities = quantityAssignments[item.id] || {};
+  const totalAssigned = Object.values(assignedQuantities).reduce((sum, qty) => sum + qty, 0);
+  const remainingQuantity = item.quantity - totalAssigned;
+  const hasMultipleQuantity = item.quantity > 1;
+  const isPartiallyAssigned = totalAssigned > 0 && remainingQuantity > 0;
+  const isFullyAssigned = totalAssigned > 0 && remainingQuantity === 0;
   
   return (
     <View style={[styles.foodItem, getBackgroundStyle()]}>
@@ -82,7 +90,21 @@ const DraggableFoodItem = ({ item, assignmentInfo }) => {
       >
         <Image source={{ uri: item.image }} style={styles.foodImage} />
       </Draggable>
-      <Text style={styles.quantity}>{item.quantity} ×</Text>
+      <View style={styles.quantitySection}>
+        <Text style={styles.quantity}>{item.quantity} ×</Text>
+        {hasMultipleQuantity && totalAssigned > 0 && (
+          <View style={styles.assignmentIndicator}>
+            <Text style={styles.assignmentText}>
+              {totalAssigned}/{item.quantity}
+            </Text>
+            {remainingQuantity > 0 && (
+              <View style={styles.remainingDot}>
+                <Text style={styles.remainingText}>{remainingQuantity}</Text>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
       <Text style={styles.foodName}>{item.name}</Text>
       <Text style={styles.foodPrice}>{item.price}</Text>
     </View>
@@ -362,6 +384,7 @@ export default function SplitScreen() {
                 key={item.id} 
                 item={item}
                 assignmentInfo={getItemAssignmentInfo(item.id)}
+                quantityAssignments={quantityAssignments}
               />
             ))}
           </View>
@@ -458,8 +481,8 @@ const styles = StyleSheet.create({
   quantity: {
     fontSize: 16,
     color: '#666',
-    marginRight: 8,
     minWidth: 24,
+    textAlign: 'center',
   },
   foodName: {
     fontSize: 16,
@@ -768,5 +791,32 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: '#fff',
     fontWeight: '500',
+  },
+  quantitySection: {
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  assignmentIndicator: {
+    marginTop: 2,
+    alignItems: 'center',
+  },
+  assignmentText: {
+    fontSize: 10,
+    color: '#666',
+    fontWeight: '500',
+  },
+  remainingDot: {
+    marginTop: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#ff6b6b',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  remainingText: {
+    fontSize: 9,
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
