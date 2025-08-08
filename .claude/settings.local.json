@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(npm install)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npm install:*)",
+      "Bash(npm start)",
+      "Bash(npm start:*)",
+      "Bash(npm uninstall:*)",
+      "WebFetch(domain:react-native-reanimated-dnd.netlify.app)"
     ],
     "deny": []
   }

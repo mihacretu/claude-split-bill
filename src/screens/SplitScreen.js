@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { DropProvider, Draggable, Droppable } from 'react-native-reanimated-dnd';
 
 const foodItems = [
   {
@@ -61,78 +62,135 @@ const people = [
   }
 ];
 
-export default function SplitScreen() {
+const DraggableFoodItem = ({ item }) => {
+  console.log('🎨 Rendering draggable food item:', item.name);
+  
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.cardContainer}>
-        <TouchableOpacity style={styles.backButton}>
-          <Text style={styles.backArrow}>‹</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.title}>
-          <Text style={styles.titleBold}>Split</Text>
-          <Text style={styles.titleRegular}> order</Text>
-        </Text>
-        
-        <View style={styles.foodItemsContainer}>
-          {foodItems.map((item) => (
-            <View key={item.id} style={styles.foodItem}>
-              <Image source={{ uri: item.image }} style={styles.foodImage} />
-              <Text style={styles.quantity}>{item.quantity} ×</Text>
-              <Text style={styles.foodName}>{item.name}</Text>
-              <Text style={styles.foodPrice}>{item.price}</Text>
-            </View>
-          ))}
+    <Draggable
+      data={item}
+      style={styles.foodItem}
+    >
+      <Image source={{ uri: item.image }} style={styles.foodImage} />
+      <Text style={styles.quantity}>{item.quantity} ×</Text>
+      <Text style={styles.foodName}>{item.name}</Text>
+      <Text style={styles.foodPrice}>{item.price}</Text>
+    </Draggable>
+  );
+};
+
+const PersonCard = ({ person, assignments, onDrop }) => {
+  const assignedItems = assignments[person.id] || [];
+
+  console.log('🎯 Rendering person card:', person.name, 'assigned items:', assignedItems.length);
+
+  if (person.isAddButton) {
+    return (
+      <View style={styles.addPersonCard}>
+        <View style={[styles.avatarContainer, styles.addPersonContainer]}>
+          <Ionicons name="person-add" size={32} color="#666" />
         </View>
-        
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.peopleContainer}
-          style={styles.peopleScrollView}
-        >
-          {people.map((person) => (
-            <TouchableOpacity 
-              key={person.id} 
-              style={[
-                styles.personCard, 
-                person.hasFood && styles.personCardWithFood,
-                person.isAddButton && styles.addPersonCard
-              ]}
-            >
-              {person.isAddButton ? (
-                <>
-                  <View style={[styles.avatarContainer, styles.addPersonContainer]}>
-                    <Ionicons 
-                      name="person-add" 
-                      size={32} 
-                      color="#666" 
-                    />
-                  </View>
-                </>
-              ) : (
-                <>
-                  <View style={styles.avatarContainer}>
-                    <Image source={{ uri: person.avatar }} style={styles.avatar} />
-                  </View>
-                  <Text style={styles.personName}>{person.name}</Text>
-                  {person.amount && <Text style={styles.personAmount}>{person.amount}</Text>}
-                  {person.hasFood && (
-                    <View style={styles.itemsContainer}>
-                      <Image 
-                        source={{ uri: person.foodImage }} 
-                        style={styles.personItemImage} 
-                      />
-                    </View>
-                  )}
-                </>
-              )}
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        
       </View>
-    </SafeAreaView>
+    );
+  }
+
+  return (
+    <Droppable
+      droppableId={`person-${person.id}`}
+      onDrop={(item) => onDrop(item, person)}
+      style={[
+        styles.personCard,
+        (person.hasFood || assignedItems.length > 0) && styles.personCardWithFood
+      ]}
+      activeStyle={styles.personCardActive}
+    >
+      <View style={styles.avatarContainer}>
+        <Image source={{ uri: person.avatar }} style={styles.avatar} />
+      </View>
+      <Text style={styles.personName}>{person.name}</Text>
+      {person.amount && <Text style={styles.personAmount}>{person.amount}</Text>}
+      
+      <View style={styles.itemsContainer}>
+        {/* Show existing assigned items */}
+        {assignedItems.map((item, index) => (
+          <Image 
+            key={`assigned-${item.id}-${index}`}
+            source={{ uri: item.image }} 
+            style={[styles.personItemImage, { marginLeft: index > 0 ? -10 : 0 }]} 
+          />
+        ))}
+        
+        {/* Show original food item if person already has food */}
+        {person.hasFood && !assignedItems.length && (
+          <Image 
+            source={{ uri: person.foodImage }} 
+            style={styles.personItemImage} 
+          />
+        )}
+      </View>
+    </Droppable>
+  );
+};
+
+export default function SplitScreen() {
+  const [assignments, setAssignments] = useState({});
+
+  const handleDrop = (draggedItem, targetPerson) => {
+    console.log('🎯 Drop event:', draggedItem?.name, 'on', targetPerson?.name);
+    
+    if (draggedItem && targetPerson && !targetPerson.isAddButton) {
+      console.log('✅ Assigning item to person');
+      setAssignments(prev => ({
+        ...prev,
+        [targetPerson.id]: [...(prev[targetPerson.id] || []), draggedItem]
+      }));
+    }
+  };
+
+  // Get all assigned item IDs to filter them out from the main food list
+  const assignedItemIds = Object.values(assignments).flat().map(item => item.id);
+  const availableItems = foodItems.filter(item => !assignedItemIds.includes(item.id));
+
+  return (
+    <DropProvider>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.cardContainer}>
+          <TouchableOpacity style={styles.backButton}>
+            <Text style={styles.backArrow}>‹</Text>
+          </TouchableOpacity>
+          
+          <Text style={styles.title}>
+            <Text style={styles.titleBold}>Split</Text>
+            <Text style={styles.titleRegular}> order</Text>
+          </Text>
+          
+          <View style={styles.foodItemsContainer}>
+            {availableItems.map((item) => (
+              <DraggableFoodItem 
+                key={item.id} 
+                item={item}
+              />
+            ))}
+          </View>
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.peopleContainer}
+            style={styles.peopleScrollView}
+          >
+            {people.map((person) => (
+              <PersonCard
+                key={person.id}
+                person={person}
+                assignments={assignments}
+                onDrop={handleDrop}
+              />
+            ))}
+          </ScrollView>
+          
+        </View>
+      </SafeAreaView>
+    </DropProvider>
   );
 }
 
@@ -308,5 +366,25 @@ const styles = StyleSheet.create({
   addPersonContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  dragging: {
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    zIndex: 1000,
+  },
+  beingDragged: {
+    backgroundColor: '#f0f0f0',
+  },
+  personCardActive: {
+    backgroundColor: '#e8f4fd',
+    borderColor: '#4a90e2',
+    borderWidth: 2,
+    transform: [{ scale: 1.02 }],
   },
 });
