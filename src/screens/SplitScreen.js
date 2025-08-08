@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image, Modal, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DropProvider, Draggable, Droppable } from 'react-native-reanimated-dnd';
 
@@ -15,7 +15,7 @@ const foodItems = [
     id: 2,
     name: 'Orange Juice',
     price: '8.00',
-    quantity: 1,
+    quantity: 3,
     image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=100&h=100&fit=crop&crop=center'
   },
   {
@@ -38,9 +38,7 @@ const people = [
   {
     id: 1,
     name: 'You',
-    amount: '9.50',
-    hasFood: true,
-    foodImage: 'https://images.unsplash.com/photo-1518013431117-eb1465fa5752?w=100&h=100&fit=crop&crop=center',
+    hasFood: false,
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face'
   },
   {
@@ -91,15 +89,86 @@ const DraggableFoodItem = ({ item, assignmentInfo }) => {
   );
 };
 
-const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo }) => {
+const QuantityModal = ({ visible, item, person, maxQuantity, onConfirm, onCancel }) => {
+  const [selectedQuantity, setSelectedQuantity] = useState('1');
+
+  const handleConfirm = () => {
+    const quantity = parseInt(selectedQuantity) || 1;
+    if (quantity > 0 && quantity <= maxQuantity) {
+      onConfirm(quantity);
+    }
+  };
+
+  return (
+    <Modal visible={visible} transparent={true} animationType="fade">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>How many {item?.name}?</Text>
+          <Text style={styles.modalSubtitle}>for {person?.name}</Text>
+          
+          <View style={styles.quantityContainer}>
+            <TouchableOpacity 
+              style={styles.quantityButton}
+              onPress={() => {
+                const newQty = Math.max(1, parseInt(selectedQuantity) - 1);
+                setSelectedQuantity(newQty.toString());
+              }}
+            >
+              <Text style={styles.quantityButtonText}>-</Text>
+            </TouchableOpacity>
+            
+            <TextInput
+              style={styles.quantityInput}
+              value={selectedQuantity}
+              onChangeText={setSelectedQuantity}
+              keyboardType="numeric"
+              maxLength={2}
+              selectTextOnFocus={true}
+            />
+            
+            <TouchableOpacity 
+              style={styles.quantityButton}
+              onPress={() => {
+                const newQty = Math.min(maxQuantity, parseInt(selectedQuantity) + 1);
+                setSelectedQuantity(newQty.toString());
+              }}
+            >
+              <Text style={styles.quantityButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.maxQuantityText}>Max: {maxQuantity}</Text>
+          
+          <View style={styles.modalButtons}>
+            <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
+              <Text style={styles.confirmButtonText}>Assign</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments }) => {
   const assignedItems = assignments[person.id] || [];
   
-  // Calculate total amount for assigned items (split shared items)
+  // Calculate total amount for assigned items based on quantities
   const assignedTotal = assignedItems.reduce((sum, item) => {
     const price = parseFloat(item.price.replace('$', '')) || 0;
-    const assignmentInfo = getItemAssignmentInfo(item.id);
-    const splitPrice = assignmentInfo.count > 1 ? price / assignmentInfo.count : price;
-    return sum + splitPrice;
+    const personQuantity = quantityAssignments[item.id]?.[person.id] || 1;
+    
+    if (item.quantity > 1) {
+      // For items with quantity > 1, calculate price per unit * assigned quantity
+      const pricePerUnit = price / item.quantity;
+      return sum + (pricePerUnit * personQuantity);
+    } else {
+      // For single quantity items, use full price
+      return sum + price;
+    }
   }, 0);
   
   // Add original person amount if exists
@@ -143,13 +212,21 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo }) => {
         {/* Show existing assigned items with proper spacing */}
         {assignedItems.map((item, index) => {
           const assignmentInfo = getItemAssignmentInfo(item.id);
+          const personQuantity = quantityAssignments[item.id]?.[person.id] || 1;
+          const showQuantityIndicator = item.quantity > 1 && assignmentInfo.isShared;
+          
           return (
             <View key={`assigned-${item.id}-${index}`} style={styles.personImageContainer}>
               <Image 
                 source={{ uri: item.image }} 
                 style={[styles.personItemImage, { marginRight: index < assignedItems.length - 1 ? 8 : 0 }]} 
               />
-              {assignmentInfo.isShared && (
+              {showQuantityIndicator && (
+                <View style={styles.quantityIndicator}>
+                  <Text style={styles.quantityIndicatorText}>{personQuantity}</Text>
+                </View>
+              )}
+              {assignmentInfo.isShared && !showQuantityIndicator && (
                 <View style={styles.sharedIndicator} />
               )}
             </View>
@@ -170,6 +247,9 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo }) => {
 
 export default function SplitScreen() {
   const [assignments, setAssignments] = useState({});
+  const [quantityAssignments, setQuantityAssignments] = useState({});
+  const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const [pendingAssignment, setPendingAssignment] = useState(null);
 
   const handleDrop = (draggedItem, targetPerson) => {
     console.log('🎯 Drop event:', draggedItem?.name, 'on', targetPerson?.name);
@@ -183,13 +263,65 @@ export default function SplitScreen() {
         console.log('❌ Person already has this item');
         return; // Don't assign if already has the item
       }
+
+      // Check if item has quantity > 1
+      const hasMultipleQuantity = draggedItem.quantity > 1;
       
-      console.log('✅ Assigning item to person');
+      if (hasMultipleQuantity) {
+        // Calculate remaining quantity available
+        const assignedQuantities = quantityAssignments[draggedItem.id] || {};
+        const totalAssigned = Object.values(assignedQuantities).reduce((sum, qty) => sum + qty, 0);
+        const remainingQuantity = draggedItem.quantity - totalAssigned;
+        
+        if (remainingQuantity > 0) {
+          // Show quantity selection modal for items with quantity > 1
+          setPendingAssignment({
+            item: draggedItem,
+            person: targetPerson,
+            maxQuantity: remainingQuantity
+          });
+          setShowQuantityModal(true);
+        }
+      } else {
+        // Normal assignment for items with quantity 1
+        console.log('✅ Assigning item to person');
+        setAssignments(prev => ({
+          ...prev,
+          [targetPerson.id]: [...(prev[targetPerson.id] || []), draggedItem]
+        }));
+      }
+    }
+  };
+
+  const handleQuantityConfirm = (quantity) => {
+    if (pendingAssignment) {
+      const { item, person } = pendingAssignment;
+      
+      // Assign the item to the person
       setAssignments(prev => ({
         ...prev,
-        [targetPerson.id]: [...(prev[targetPerson.id] || []), draggedItem]
+        [person.id]: [...(prev[person.id] || []), item]
       }));
+      
+      // Set the specific quantity assignment
+      setQuantityAssignments(prev => ({
+        ...prev,
+        [item.id]: {
+          ...prev[item.id],
+          [person.id]: quantity
+        }
+      }));
+      
+      console.log(`✅ Assigned ${quantity} ${item.name} to ${person.name}`);
     }
+    
+    setShowQuantityModal(false);
+    setPendingAssignment(null);
+  };
+
+  const handleQuantityCancel = () => {
+    setShowQuantityModal(false);
+    setPendingAssignment(null);
   };
 
   // Get assignment counts for each item
@@ -249,11 +381,21 @@ export default function SplitScreen() {
                 assignments={assignments}
                 onDrop={handleDrop}
                 getItemAssignmentInfo={getItemAssignmentInfo}
+                quantityAssignments={quantityAssignments}
               />
             ))}
           </ScrollView>
           
         </View>
+        
+        <QuantityModal
+          visible={showQuantityModal}
+          item={pendingAssignment?.item}
+          person={pendingAssignment?.person}
+          maxQuantity={pendingAssignment?.maxQuantity}
+          onConfirm={handleQuantityConfirm}
+          onCancel={handleQuantityCancel}
+        />
       </SafeAreaView>
     </DropProvider>
   );
@@ -525,5 +667,106 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#8b5cf6',
     backgroundColor: '#faf7ff',
+  },
+  quantityIndicator: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#ff8c00',
+    borderWidth: 1,
+    borderColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quantityIndicatorText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: 280,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  quantityButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quantityButtonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  quantityInput: {
+    width: 60,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    textAlign: 'center',
+    fontSize: 16,
+    marginHorizontal: 12,
+  },
+  maxQuantityText: {
+    fontSize: 12,
+    color: '#999',
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontWeight: '500',
+  },
+  confirmButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#4a90e2',
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontWeight: '500',
   },
 });
