@@ -235,7 +235,7 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
         {assignedItems.map((item, index) => {
           const assignmentInfo = getItemAssignmentInfo(item.id);
           const personQuantity = quantityAssignments[item.id]?.[person.id] || 1;
-          const showQuantityIndicator = item.quantity > 1 && assignmentInfo.isShared;
+          const showQuantityIndicator = item.quantity > 1;
           
           return (
             <View key={`assigned-${item.id}-${index}`} style={styles.personImageContainer}>
