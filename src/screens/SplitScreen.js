@@ -90,22 +90,18 @@ const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments }) => {
       >
         <Image source={{ uri: item.image }} style={styles.foodImage} />
       </Draggable>
-      <View style={styles.quantitySection}>
-        <Text style={styles.quantity}>{item.quantity} ×</Text>
+      <Text style={styles.quantity}>{item.quantity} ×</Text>
+      <View style={styles.foodDetails}>
+        <Text style={styles.foodName}>{item.name}</Text>
         {hasMultipleQuantity && totalAssigned > 0 && (
-          <View style={styles.assignmentIndicator}>
-            <Text style={styles.assignmentText}>
-              {totalAssigned}/{item.quantity}
-            </Text>
-            {remainingQuantity > 0 && (
-              <View style={styles.remainingDot}>
-                <Text style={styles.remainingText}>{remainingQuantity}</Text>
-              </View>
-            )}
-          </View>
+          <Text style={styles.assignmentStatus}>
+            {remainingQuantity > 0 ? 
+              `Assigned: ${totalAssigned} • Remaining: ${remainingQuantity}` : 
+              `Fully assigned (${totalAssigned})`
+            }
+          </Text>
         )}
       </View>
-      <Text style={styles.foodName}>{item.name}</Text>
       <Text style={styles.foodPrice}>{item.price}</Text>
     </View>
   );
@@ -481,14 +477,22 @@ const styles = StyleSheet.create({
   quantity: {
     fontSize: 16,
     color: '#666',
+    marginRight: 8,
     minWidth: 24,
-    textAlign: 'center',
+  },
+  foodDetails: {
+    flex: 1,
   },
   foodName: {
     fontSize: 16,
     color: '#1a1a1a',
-    flex: 1,
     fontWeight: '500',
+  },
+  assignmentStatus: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+    fontStyle: 'italic',
   },
   foodPrice: {
     fontSize: 16,
@@ -791,32 +795,5 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: '#fff',
     fontWeight: '500',
-  },
-  quantitySection: {
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  assignmentIndicator: {
-    marginTop: 2,
-    alignItems: 'center',
-  },
-  assignmentText: {
-    fontSize: 10,
-    color: '#666',
-    fontWeight: '500',
-  },
-  remainingDot: {
-    marginTop: 2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#ff6b6b',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  remainingText: {
-    fontSize: 9,
-    color: '#fff',
-    fontWeight: 'bold',
   },
 });
