@@ -62,19 +62,18 @@ const people = [
   }
 ];
 
-const DraggableFoodItem = ({ item }) => {
+const DraggableFoodItem = ({ item, isAssigned }) => {
   console.log('🎨 Rendering draggable food item:', item.name);
   
   return (
-    <Draggable
-      data={item}
-      style={styles.foodItem}
-    >
-      <Image source={{ uri: item.image }} style={styles.foodImage} />
+    <View style={[styles.foodItem, isAssigned && styles.foodItemAssigned]}>
+      <Draggable data={item}>
+        <Image source={{ uri: item.image }} style={styles.foodImage} />
+      </Draggable>
       <Text style={styles.quantity}>{item.quantity} ×</Text>
-      <Text style={styles.foodName}>{item.name}</Text>
-      <Text style={styles.foodPrice}>{item.price}</Text>
-    </Draggable>
+      <Text style={[styles.foodName, isAssigned && styles.assignedText]}>{item.name}</Text>
+      <Text style={[styles.foodPrice, isAssigned && styles.assignedText]}>{item.price}</Text>
+    </View>
   );
 };
 
@@ -146,9 +145,8 @@ export default function SplitScreen() {
     }
   };
 
-  // Get all assigned item IDs to filter them out from the main food list
+  // Get all assigned item IDs to check assignment status
   const assignedItemIds = Object.values(assignments).flat().map(item => item.id);
-  const availableItems = foodItems.filter(item => !assignedItemIds.includes(item.id));
 
   return (
     <DropProvider>
@@ -164,10 +162,11 @@ export default function SplitScreen() {
           </Text>
           
           <View style={styles.foodItemsContainer}>
-            {availableItems.map((item) => (
+            {foodItems.map((item) => (
               <DraggableFoodItem 
                 key={item.id} 
                 item={item}
+                isAssigned={assignedItemIds.includes(item.id)}
               />
             ))}
           </View>
@@ -386,5 +385,31 @@ const styles = StyleSheet.create({
     borderColor: '#4a90e2',
     borderWidth: 2,
     transform: [{ scale: 1.02 }],
+  },
+  dragPreviewImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    borderWidth: 3,
+    borderColor: '#4a90e2',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 15,
+  },
+  foodItemAssigned: {
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#4a90e2',
+    opacity: 0.7,
+  },
+  assignedText: {
+    color: '#666',
+    textDecorationLine: 'line-through',
   },
 });
