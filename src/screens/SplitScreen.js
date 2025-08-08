@@ -73,6 +73,11 @@ const DraggableFoodItem = ({ item, assignmentInfo }) => {
   
   return (
     <View style={[styles.foodItem, getBackgroundStyle()]}>
+      {assignmentInfo.isShared && (
+        <View style={styles.sharedIconContainer}>
+          <Ionicons name="people" size={12} color="#ff8c00" />
+        </View>
+      )}
       <Draggable 
         data={item}
         style={styles.draggableImageContainer}
@@ -492,5 +497,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff8c00',
     borderWidth: 1,
     borderColor: '#fff',
+  },
+  sharedIconContainer: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
   },
 });
