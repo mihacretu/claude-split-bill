@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '../theme/colors';
 import { Draggable } from 'react-native-reanimated-dnd';
 
-const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments, onDraggingChange }) => {
+const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments, onDraggingChange, isLastInPage }) => {
   console.log('🎨 Rendering draggable food item:', item.name);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -23,7 +23,7 @@ const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments, onDraggi
   const isFullyAssigned = totalAssigned > 0 && remainingQuantity === 0;
   
   return (
-    <View style={[styles.foodItem, getBackgroundStyle(), isDragging && styles.foodItemDragging]}>
+    <View style={[styles.foodItem, getBackgroundStyle(), isDragging && styles.foodItemDragging, isLastInPage && styles.lastFoodItem]}>
       <LinearGradient
         colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
         locations={[0, 0.6, 1]}
@@ -101,6 +101,9 @@ const styles = StyleSheet.create({
   foodItemDragging: {
     zIndex: 9999,
     elevation: 50,
+  },
+  lastFoodItem: {
+    marginBottom: 8,
   },
   foodImage: {
     width: 52,
