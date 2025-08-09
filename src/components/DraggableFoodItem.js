@@ -24,7 +24,6 @@ const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments, onDraggi
   
   return (
     <View style={[styles.foodItem, getBackgroundStyle(), isDragging && styles.foodItemDragging]}>
-      <View pointerEvents="none" style={styles.cardContour} />
       <LinearGradient
         colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
         locations={[0, 0.6, 1]}
@@ -79,21 +78,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderRadius: 14,
-    zIndex: -2,
-  },
-  cardContour: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
     zIndex: -1,
   },
   foodItem: {
