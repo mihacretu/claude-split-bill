@@ -12,9 +12,9 @@ const Title = ({ boldText, regularText, style }) => {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 36,
+    fontSize: 28,
     color: '#1a1a1a',
-    marginBottom: 40,
+    marginBottom: 0,
   },
   titleBold: {
     fontWeight: 'bold',

@@ -1,8 +1,17 @@
 export const Colors = {
-  // Light metallic gray background gradient (as in the reference)
-  backgroundTop: '#F5F6F7',
-  backgroundMid: '#E9EAEE',
-  backgroundBottom: '#DADCE2',
+  // Light metallic gray background gradient (lighter for more contrast)
+  backgroundTop: '#FBFCFE',
+  backgroundMid: '#F4F6FA',
+  backgroundBottom: '#ECEFF5',
+
+  // Card gradient (kept slightly darker than background)
+  cardTop: '#F5F6F7',
+  cardMid: '#E9EAEE',
+  cardBottom: '#DADCE2',
+
+  // Outlines
+  personCardOutline: '#B7BEC9',
+  personCardStroke: '#A6AFBB',
 
   // Surfaces use translucent glass style; these are fallback tints
   surface: 'rgba(255,255,255,0.06)',

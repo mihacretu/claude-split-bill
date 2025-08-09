@@ -16,8 +16,9 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
   if (person.isAddButton) {
     return (
       <View style={styles.addPersonCard}>
+        <View pointerEvents="none" style={styles.personCardShadow} />
         <LinearGradient
-          colors={[Colors.backgroundTop, Colors.backgroundMid, Colors.backgroundBottom]}
+          colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
           locations={[0, 0.6, 1]}
           start={{ x: 0.3, y: 0 }}
           end={{ x: 0.7, y: 1 }}
@@ -43,8 +44,9 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
       ]}
       activeStyle={styles.personCardActive}
     >
+      <View pointerEvents="none" style={styles.personCardShadow} />
       <LinearGradient
-        colors={[Colors.backgroundTop, Colors.backgroundMid, Colors.backgroundBottom]}
+        colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
         locations={[0, 0.6, 1]}
         start={{ x: 0.3, y: 0 }}
         end={{ x: 0.7, y: 1 }}
@@ -104,9 +106,25 @@ const styles = StyleSheet.create({
     width: 100,
     marginRight: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.personCardStroke,
     zIndex: 0,
     overflow: 'hidden',
+  },
+  // Soft darker contour similar to menu items but with darker tone
+  personCardShadow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.personCardOutline,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    zIndex: -1,
   },
   cardGradient: {
     position: 'absolute',

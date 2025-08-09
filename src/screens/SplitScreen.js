@@ -74,11 +74,12 @@ export default function SplitScreen() {
           />
         </View>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <BackButton />
-          
-          <Title boldText="Split" regularText=" order" />
+          <View style={styles.headerRow}>
+            <BackButton style={styles.backInline} />
+            <Title boldText="Split" regularText=" order" style={styles.titleInline} />
+          </View>
           <View style={styles.hintRow}>
-            <Ionicons name="hand-right" size={14} color="#4a90e2" />
+            <Ionicons name="hand-right" size={14} color={Colors.accentBlue} />
             <Text style={styles.hintText}>Drag a dish image onto a person to assign</Text>
           </View>
           
@@ -153,9 +154,22 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 12,
     paddingBottom: 24,
     flexGrow: 1,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  backInline: {
+    marginBottom: 0,
+    marginRight: 14,
+  },
+  titleInline: {
+    marginBottom: 0,
+    fontSize: 28,
   },
   // Removed white card. Content sits directly on the grey background.
   foodItemsContainer: {
@@ -172,17 +186,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 12,
-    backgroundColor: Colors.accentBlueSoft,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    backgroundColor: 'rgba(79, 209, 197, 0.28)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.accentBlue,
     alignSelf: 'flex-start',
   },
   hintText: {
     marginLeft: 6,
-    color: Colors.textPrimary,
-    fontSize: 12,
-    fontWeight: '500',
+    color: Colors.textOnLightPrimary,
+    fontSize: 13,
+    fontWeight: '600',
   },
   peopleContainer: {
     paddingHorizontal: 24,
