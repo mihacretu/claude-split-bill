@@ -9,7 +9,7 @@ import { calculatePersonTotal } from '../utils';
 const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments }) => {
   const assignedItems = assignments[person.id] || [];
   
-  const totalAmount = calculatePersonTotal(person, assignedItems, quantityAssignments);
+  const totalAmount = calculatePersonTotal(person, assignedItems, quantityAssignments, assignments);
 
   console.log('🎯 Rendering person card:', person.name, 'assigned items:', assignedItems.length);
 
@@ -67,10 +67,10 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
           const showQuantityIndicator = item.quantity > 1;
           
           return (
-            <View key={`assigned-${item.id}-${index}`} style={styles.personImageContainer}>
+            <View key={`assigned-${item.id}-${index}`} style={[styles.personImageContainer, { marginRight: index < assignedItems.length - 1 ? 8 : 0 }]}>
               <Image 
                 source={{ uri: item.image }} 
-                style={[styles.personItemImage, { marginRight: index < assignedItems.length - 1 ? 8 : 0 }]} 
+                style={styles.personItemImage}
               />
               {showQuantityIndicator && (
                 <View style={styles.quantityIndicator}>
@@ -78,7 +78,9 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
                 </View>
               )}
               {assignmentInfo.isShared && !showQuantityIndicator && (
-                <View style={styles.sharedIndicator} />
+                <View style={styles.sharedIndicator}>
+                  <Ionicons name="people" size={8} color="#fff" />
+                </View>
               )}
             </View>
           );
@@ -108,7 +110,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.personCardStroke,
     zIndex: 0,
-    overflow: 'hidden',
+    overflow: 'visible',
   },
   // Soft darker contour similar to menu items but with darker tone
   personCardShadow: {
@@ -149,7 +151,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderWidth: 1,
     borderColor: Colors.border,
-    overflow: 'hidden',
+    overflow: 'visible',
     zIndex: 0,
   },
   selectedPersonCard: {
@@ -203,7 +205,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 6,
-    marginBottom: 4,
   },
   addPersonContainer: {
     justifyContent: 'center',
@@ -240,17 +241,23 @@ const styles = StyleSheet.create({
   },
   personImageContainer: {
     position: 'relative',
+    width: 32,
+    height: 32,
+    marginBottom: 4,
   },
   sharedIndicator: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    top: -4,
+    right: -4,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: '#F08430',
     borderWidth: 1,
     borderColor: '#fff',
+    zIndex: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

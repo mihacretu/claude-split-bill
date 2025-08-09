@@ -79,7 +79,7 @@ export default function SplitScreen() {
             <Title boldText="Split" regularText=" order" style={styles.titleInline} />
           </View>
           <View style={styles.hintRow}>
-            <Ionicons name="hand-right" size={14} color={Colors.accentBlue} />
+            <Ionicons name="hand-right" size={14} color={'rgba(79, 209, 197, 0.8)'} />
             <Text style={styles.hintText}>Drag a dish image onto a person to assign</Text>
           </View>
           
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   titleInline: {
     marginBottom: 0,
-    fontSize: 28,
+    fontSize: 36,
   },
   // Removed white card. Content sits directly on the grey background.
   foodItemsContainer: {
@@ -186,19 +186,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 12,
-    backgroundColor: 'rgba(79, 209, 197, 0.28)',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(79, 209, 197, 0.12)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: Colors.accentBlue,
+    borderColor: 'rgba(79, 209, 197, 0.35)',
     alignSelf: 'flex-start',
   },
   hintText: {
     marginLeft: 6,
-    color: Colors.textOnLightPrimary,
-    fontSize: 13,
-    fontWeight: '600',
+    color: Colors.textOnLightSecondary,
+    fontSize: 12,
+    fontWeight: '500',
   },
   peopleContainer: {
     paddingHorizontal: 24,
