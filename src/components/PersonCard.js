@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Droppable } from 'react-native-reanimated-dnd';
+import { Droppable, Draggable } from 'react-native-reanimated-dnd';
 import { calculatePersonTotal } from '../utils';
 
-const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments }) => {
+const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments, onStartDrag, onEndDrag }) => {
   const assignedItems = assignments[person.id] || [];
   
   const totalAmount = calculatePersonTotal(person, assignedItems, quantityAssignments, assignments);
@@ -67,22 +67,31 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
           const showQuantityIndicator = item.quantity > 1;
           
           return (
-            <View key={`assigned-${item.id}-${index}`} style={[styles.personImageContainer, { marginRight: index < assignedItems.length - 1 ? 8 : 0 }]}>
-              <Image 
-                source={{ uri: item.image }} 
-                style={styles.personItemImage}
-              />
-              {showQuantityIndicator && (
-                <View style={styles.quantityIndicator}>
-                  <Text style={styles.quantityIndicatorText}>{personQuantity}</Text>
-                </View>
-              )}
-              {assignmentInfo.isShared && !showQuantityIndicator && (
-                <View style={styles.sharedIndicator}>
-                  <Ionicons name="people" size={8} color="#fff" />
-                </View>
-              )}
-            </View>
+            <Draggable
+              key={`assigned-${item.id}-${index}`}
+              data={{ item, person }}
+              style={{ marginRight: index < assignedItems.length - 1 ? 8 : 0, position: 'relative', zIndex: 1000000 }}
+              draggingStyle={styles.draggingOverlaySmall}
+              onDragStart={() => onStartDrag && onStartDrag({ person, item })}
+              onDragEnd={() => onEndDrag && onEndDrag()}
+            >
+              <View style={styles.personImageContainer}>
+                <Image 
+                  source={{ uri: item.image }} 
+                  style={styles.personItemImage}
+                />
+                {showQuantityIndicator && (
+                  <View style={styles.quantityIndicator}>
+                    <Text style={styles.quantityIndicatorText}>{personQuantity}</Text>
+                  </View>
+                )}
+                {assignmentInfo.isShared && !showQuantityIndicator && (
+                  <View style={styles.sharedIndicator}>
+                    <Ionicons name="people" size={8} color="#fff" />
+                  </View>
+                )}
+              </View>
+            </Draggable>
           );
         })}
         
@@ -220,6 +229,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#8b5cf6',
     backgroundColor: Colors.surfaceStrong,
+  },
+  draggingOverlaySmall: {
+    zIndex: 100000,
+    elevation: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    transform: [{ scale: 1.05 }],
   },
   quantityIndicator: {
     position: 'absolute',

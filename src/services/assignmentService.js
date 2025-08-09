@@ -94,3 +94,22 @@ export const handleQuantityAssignment = (
     newQuantityAssignments
   };
 };
+
+export const unassignItemFromPerson = (person, item, assignments, quantityAssignments) => {
+  if (!person || !item) return { shouldUpdate: false };
+
+  const personItems = assignments[person.id] || [];
+  const updatedItems = personItems.filter(i => i.id !== item.id);
+
+  const { [person.id]: _, ...restQuantitiesForItem } = (quantityAssignments[item.id] || {});
+  const newQuantityAssignments = {
+    ...quantityAssignments,
+    [item.id]: restQuantitiesForItem,
+  };
+
+  return {
+    shouldUpdate: true,
+    newAssignments: { ...assignments, [person.id]: updatedItems },
+    newQuantityAssignments,
+  };
+};
