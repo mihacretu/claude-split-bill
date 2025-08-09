@@ -26,6 +26,13 @@ export const handleItemDrop = (
     return { shouldUpdate: false };
   }
 
+  // Check if this is a draggable food item from the bill (should have an `id` property)
+  // If draggedItem has a `person` property, it means it's being dragged from another person card
+  if (draggedItem.person) {
+    console.log('❌ Cannot move items between person cards');
+    return { shouldUpdate: false };
+  }
+
   const currentAssignments = assignments[targetPerson.id] || [];
   const alreadyHasItem = currentAssignments.some(item => item.id === draggedItem.id);
   

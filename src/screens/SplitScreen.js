@@ -3,7 +3,7 @@ import { View, StyleSheet, SafeAreaView, ScrollView, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
-import { DropProvider, Droppable } from 'react-native-reanimated-dnd';
+import { DropProvider } from 'react-native-reanimated-dnd';
 import { DraggableFoodItem, QuantityModal, PersonCard, BackButton, Title } from '../components';
 import { unassignItemFromPerson } from '../services';
 import { foodItems, people, getItemAssignmentInfo, handleItemDrop, handleQuantityAssignment } from '../services';
@@ -19,7 +19,6 @@ export default function SplitScreen() {
   const [pendingAssignment, setPendingAssignment] = useState(null);
   const [isAnyDragging, setIsAnyDragging] = useState(false);
   const [dragNonce, setDragNonce] = useState(0);
-  const [deleteZoneVisible, setDeleteZoneVisible] = useState(false);
   const [draggedFromPerson, setDraggedFromPerson] = useState(null); // { person, item }
   const scrollRef = useRef(null);
 
@@ -68,8 +67,6 @@ export default function SplitScreen() {
 
   // Get all assigned item IDs to check assignment status
   const assignedItemIds = Object.values(assignments).flat().map(item => item.id);
-  const hasAnyAssignments = assignedItemIds.length > 0;
-  const showDeleteZone = hasAnyAssignments; // Always show when there's anything assigned
 
   return (
     <DropProvider key={`provider-${assignedItemIds.length}-${dragNonce}`}>
@@ -83,7 +80,7 @@ export default function SplitScreen() {
             style={styles.bgGradient}
           />
         </View>
-        <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} scrollEnabled={!isAnyDragging}>
           <View style={styles.headerRow}>
             <BackButton style={styles.backInline} />
             <Title boldText="Split" regularText=" order" style={styles.titleInline} />
@@ -103,9 +100,8 @@ export default function SplitScreen() {
                 onDraggingChange={(dragging) => {
                   setIsAnyDragging(dragging);
                   if (dragging) {
-                    // Dragging from the menu; ensure delete zone is not considered
+                    // Dragging from the menu
                     setDraggedFromPerson(null);
-                    setDeleteZoneVisible(false);
                   }
                 }}
               />
@@ -117,7 +113,7 @@ export default function SplitScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.peopleContainer}
             style={styles.peopleScrollView}
-            scrollEnabled={true}
+            scrollEnabled={!isAnyDragging}
             nestedScrollEnabled={false}
           >
             {people.map((person) => (
@@ -126,46 +122,17 @@ export default function SplitScreen() {
                 person={person}
                 assignments={assignments}
                 onDrop={handleDrop}
-                // When a drag starts inside a person card, reveal delete zone
+                // When a drag starts inside a person card
                 onStartDrag={(payload) => {
-                  setDeleteZoneVisible(true);
                   setDraggedFromPerson(payload); // { person, item }
-                  // Ensure the delete area and spacer are visible
-                  requestAnimationFrame(() => {
-                    if (scrollRef.current) {
-                      scrollRef.current.scrollToEnd({ animated: true });
-                    }
-                  });
                 }}
-                // When drag ends, hide delete zone if not dropped to delete
-                onEndDrag={() => setDeleteZoneVisible(false)}
-                getItemAssignmentInfo={(itemId) => getItemAssignmentInfo(itemId, assignments)}
-                quantityAssignments={quantityAssignments}
-              />
-            ))}
-          </ScrollView>
-
-          {hasAnyAssignments && <View style={styles.deleteSpacer} />}
-
-          <View
-            style={[
-              styles.deleteZoneWrapper,
-              !showDeleteZone && styles.deleteZoneHidden,
-            ]}
-            // Disable interactions while dragging from the menu list
-            pointerEvents={showDeleteZone ? (isAnyDragging && !draggedFromPerson ? 'none' : 'box-none') : 'none'}
-          >
-            {showDeleteZone && (
-              <Droppable
-                droppableId="delete-zone"
-                onDrop={(data) => {
-                  // Only allow drops from assigned thumbnails (which carry { person, item })
-                  const isValidPayload = data && data.person && data.item;
-                  const payload = isValidPayload ? data : draggedFromPerson;
-                  if (payload) {
+                // When drag ends, handle auto-unassign if not dropped on valid target
+                onEndDrag={() => {
+                  // If we have a dragged item and it wasn't consumed by a valid drop, unassign it
+                  if (draggedFromPerson) {
                     const result = unassignItemFromPerson(
-                      payload.person,
-                      payload.item,
+                      draggedFromPerson.person,
+                      draggedFromPerson.item,
                       assignments,
                       quantityAssignments
                     );
@@ -174,16 +141,13 @@ export default function SplitScreen() {
                       setQuantityAssignments(result.newQuantityAssignments);
                     }
                   }
-                  setDeleteZoneVisible(false);
                   setDraggedFromPerson(null);
                 }}
-                style={styles.deleteZoneRect}
-                activeStyle={styles.deleteZoneRectActive}
-              >
-                <Text pointerEvents="none" style={styles.deleteZoneLabel}>Drag here to unassign</Text>
-              </Droppable>
-            )}
-          </View>
+                getItemAssignmentInfo={(itemId) => getItemAssignmentInfo(itemId, assignments)}
+                quantityAssignments={quantityAssignments}
+              />
+            ))}
+          </ScrollView>
         </ScrollView>
         
         <QuantityModal
@@ -281,62 +245,5 @@ const styles = StyleSheet.create({
     flexGrow: 0,
     position: 'relative',
     zIndex: 0,
-  },
-  deleteSpacer: {
-    height: 140,
-  },
-  deleteZoneWrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 100,
-    zIndex: 0,
-  },
-  deleteZoneHidden: {
-    // reserve layout space but keep it behind content so draggables stay above
-    zIndex: 0,
-  },
-  deleteZoneRect: {
-    width: 200,
-    height: 72,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(220, 53, 69, 0.45)',
-    backgroundColor: 'rgba(220, 53, 69, 0.06)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deleteZoneRectActive: {
-    borderColor: 'rgba(220, 53, 69, 0.75)',
-    backgroundColor: 'rgba(220, 53, 69, 0.12)',
-    transform: [{ scale: 1.03 }],
-  },
-  deleteIconCircle: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: 'rgba(220, 53, 69, 0.88)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    elevation: 3,
-    zIndex: 1,
-  },
-  deleteIconCircleActive: {
-    backgroundColor: 'rgba(220, 53, 69, 1)',
-    transform: [{ scale: 1.06 }],
-  },
-  deleteZoneLabel: {
-    color: 'rgba(220, 53, 69, 0.9)',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.3,
   },
 });
