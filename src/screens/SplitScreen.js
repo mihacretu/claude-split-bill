@@ -17,6 +17,7 @@ export default function SplitScreen() {
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [pendingAssignment, setPendingAssignment] = useState(null);
   const [isAnyDragging, setIsAnyDragging] = useState(false);
+  const [dragNonce, setDragNonce] = useState(0);
 
   const handleDrop = (draggedItem, targetPerson) => {
     const result = handleItemDrop(
@@ -33,6 +34,9 @@ export default function SplitScreen() {
     if (result.shouldUpdate) {
       setAssignments(result.newAssignments);
     }
+
+    // Force a provider refresh to ensure any temporary drag previews are cleaned up
+    setDragNonce((n) => n + 1);
   };
 
   const handleQuantityConfirm = (quantity) => {
@@ -62,7 +66,7 @@ export default function SplitScreen() {
   const assignedItemIds = Object.values(assignments).flat().map(item => item.id);
 
   return (
-    <DropProvider key={`provider-${assignedItemIds.length}`}>
+    <DropProvider key={`provider-${assignedItemIds.length}-${dragNonce}`}>
       <SafeAreaView style={styles.container}>
         <View pointerEvents="none" style={styles.backgroundLayer}>
           <LinearGradient
