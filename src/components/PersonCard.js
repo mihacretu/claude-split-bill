@@ -96,7 +96,8 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 0,
+    zIndex: 0,
   },
   personCardWithFood: {
     paddingBottom: 10,
@@ -119,7 +120,8 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 0,
+    zIndex: 0,
   },
   selectedPersonCard: {
     backgroundColor: '#f8f8f8',
@@ -132,7 +134,8 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 0,
+    zIndex: 0,
   },
   avatarContainer: {
     width: 48,

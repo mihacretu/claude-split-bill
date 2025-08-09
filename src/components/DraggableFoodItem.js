@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Draggable } from 'react-native-reanimated-dnd';
 
-const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments }) => {
+const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments, onDraggingChange }) => {
   console.log('🎨 Rendering draggable food item:', item.name);
+  const [isDragging, setIsDragging] = useState(false);
   
   const getBackgroundStyle = () => {
     if (!assignmentInfo.isAssigned) return null;
@@ -20,7 +21,7 @@ const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments }) => {
   const isFullyAssigned = totalAssigned > 0 && remainingQuantity === 0;
   
   return (
-    <View style={[styles.foodItem, getBackgroundStyle()]}>
+    <View style={[styles.foodItem, getBackgroundStyle(), isDragging && styles.foodItemDragging]}> 
       {assignmentInfo.isShared && (
         <View style={styles.sharedIconContainer}>
           <Ionicons name="people" size={12} color="#ff8c00" />
@@ -29,8 +30,23 @@ const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments }) => {
       <Draggable 
         data={item}
         style={styles.draggableImageContainer}
+        draggingStyle={styles.draggingOverlay}
+        onDragStart={() => {
+          setIsDragging(true);
+          onDraggingChange && onDraggingChange(true);
+        }}
+        onDragEnd={() => {
+          setIsDragging(false);
+          onDraggingChange && onDraggingChange(false);
+        }}
       >
-        <Image source={{ uri: item.image }} style={styles.foodImage} />
+        <View style={styles.imageWrapper}>
+          <Image source={{ uri: item.image }} style={styles.foodImage} />
+          <View style={styles.dragBadge} pointerEvents="none">
+            <Ionicons name="move" size={12} color="#4a90e2" />
+            <Text style={styles.dragBadgeText}>Drag</Text>
+          </View>
+        </View>
       </Draggable>
       <Text style={styles.quantity}>{item.quantity} ×</Text>
       <View style={styles.foodDetails}>
@@ -54,12 +70,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+    position: 'relative',
+    zIndex: 0,
+  },
+  foodItemDragging: {
+    zIndex: 9999,
+    elevation: 50,
   },
   foodImage: {
     width: 50,
     height: 50,
     borderRadius: 8,
-    marginRight: 12,
+    overflow: 'hidden',
   },
   quantity: {
     fontSize: 16,
@@ -99,7 +121,54 @@ const styles = StyleSheet.create({
     borderColor: '#ff8c00',
   },
   draggableImageContainer: {
-    zIndex: 1,
+    zIndex: 100,
+    position: 'relative',
+    elevation: 10,
+  },
+  imageWrapper: {
+    width: 54,
+    height: 54,
+    padding: 2,
+    marginRight: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#4a90e2',
+    backgroundColor: '#ffffff',
+    position: 'relative',
+    zIndex: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dragBadge: {
+    position: 'absolute',
+    right: 2,
+    top: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    backgroundColor: 'rgba(74, 144, 226, 0.12)',
+  },
+  dragBadgeText: {
+    marginLeft: 4,
+    fontSize: 10,
+    color: '#2f5fa3',
+    fontWeight: '600',
+  },
+  draggingOverlay: {
+    zIndex: 9999,
+    elevation: 50,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   sharedIconContainer: {
     position: 'absolute',
