@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.personCardStroke,
     zIndex: 0,
+    elevation: 0,
     overflow: 'visible',
   },
   // Soft darker contour similar to menu items but with darker tone
@@ -231,8 +232,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceStrong,
   },
   draggingOverlaySmall: {
-    zIndex: 100000,
-    elevation: 100,
+    zIndex: 10000,
+    elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,

@@ -38,8 +38,7 @@ const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments, onDraggi
       )}
       <Draggable 
         data={item}
-        style={styles.draggableImageContainer}
-        draggingStyle={styles.draggingOverlay}
+        style={[styles.draggableImageContainer, isDragging && styles.draggingOverlay]}
         onDragStart={() => {
           setIsDragging(true);
           onDraggingChange && onDraggingChange(true);
@@ -77,7 +76,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 14,
+    borderRadius: 16,
     zIndex: -1,
   },
   foodItem: {
@@ -86,14 +85,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 14,
+    borderRadius: 16,
     backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(0,0,0,0.04)',
+    // ultra-soft shadow that blends with the light theme
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
     elevation: 1,
     position: 'relative',
     zIndex: 0,
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     borderLeftColor: Colors.shared,
   },
   draggableImageContainer: {
-    zIndex: 1,
+    zIndex: 100,
     position: 'relative',
     elevation: 10,
   },
@@ -183,11 +183,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
     position: 'relative',
     zIndex: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -211,14 +211,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 200,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.12,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
 });
 

@@ -266,12 +266,14 @@ const styles = StyleSheet.create({
   // removed layered overlays to ensure a consistent full-height gradient
   scroll: {
     flex: 1,
+    overflow: 'visible',
   },
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 12,
     paddingBottom: 24,
     flexGrow: 1,
+    overflow: 'visible',
   },
   headerRow: {
     flexDirection: 'row',
@@ -289,13 +291,15 @@ const styles = StyleSheet.create({
   // Swipeable carousel styles
   carouselContainer: {
     position: 'relative',
-    zIndex: 1,
+    zIndex: 2,
     flexGrow: 0,
+    overflow: 'visible',
   },
   carouselContent: {
     paddingHorizontal: 24,
     paddingBottom: 0,
     flexGrow: 0,
+    overflow: 'visible',
   },
   carouselPage: {
     paddingHorizontal: 0,
@@ -303,6 +307,12 @@ const styles = StyleSheet.create({
   foodItemsContainerDragging: {
     zIndex: 9998,
     elevation: 40,
+  },
+  peopleScrollView: {
+    flexGrow: 0,
+    position: 'relative',
+    zIndex: 0,
+    elevation: 0,
   },
   hintRow: {
     flexDirection: 'row',
@@ -329,11 +339,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     position: 'relative',
     zIndex: 0,
+    elevation: 0,
   },
   peopleScrollView: {
     flexGrow: 0,
     position: 'relative',
     zIndex: 0,
+    elevation: 0,
   },
   pageIndicatorContainer: {
     flexDirection: 'row',
@@ -341,6 +353,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 25,
+    zIndex: 0,
+    elevation: 0,
   },
   pageIndicatorDot: {
     width: 8,
