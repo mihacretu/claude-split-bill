@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, SafeAreaView, ScrollView, Text } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { DropProvider } from 'react-native-reanimated-dnd';
 import { DraggableFoodItem, QuantityModal, PersonCard, BackButton, Title } from '../components';
@@ -62,7 +63,16 @@ export default function SplitScreen() {
   return (
     <DropProvider key={`provider-${assignedItemIds.length}`}>
       <SafeAreaView style={styles.container}>
-        <View style={styles.cardContainer}>
+        <View pointerEvents="none" style={styles.backgroundLayer}>
+          <LinearGradient
+            colors={["#F9FAFB", "#EFF2F6", "#E5E7EB"]}
+            locations={[0, 0.55, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.bgGradient}
+          />
+        </View>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <BackButton />
           
           <Title boldText="Split" regularText=" order" />
@@ -102,8 +112,7 @@ export default function SplitScreen() {
               />
             ))}
           </ScrollView>
-          
-        </View>
+        </ScrollView>
         
         <QuantityModal
           visible={showQuantityModal}
@@ -121,26 +130,33 @@ export default function SplitScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#e8e8e8',
+    backgroundColor: '#F2F4F7',
+  },
+  backgroundLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  bgGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  // removed layered overlays to ensure a consistent full-height gradient
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 20,
+    paddingBottom: 24,
+    flexGrow: 1,
   },
-  cardContainer: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    flex: 1,
-    position: 'relative',
-    overflow: 'visible',
-  },
+  // Removed white card. Content sits directly on the grey background.
   foodItemsContainer: {
     marginBottom: 40,
     position: 'relative',
