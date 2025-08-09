@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, SafeAreaView, ScrollView, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import Colors from '../theme/colors';
 import { DropProvider } from 'react-native-reanimated-dnd';
 import { DraggableFoodItem, QuantityModal, PersonCard, BackButton, Title } from '../components';
 import { foodItems, people, getItemAssignmentInfo, handleItemDrop, handleQuantityAssignment } from '../services';
@@ -65,10 +66,10 @@ export default function SplitScreen() {
       <SafeAreaView style={styles.container}>
         <View pointerEvents="none" style={styles.backgroundLayer}>
           <LinearGradient
-            colors={["#F9FAFB", "#EFF2F6", "#E5E7EB"]}
-            locations={[0, 0.55, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
+            colors={[Colors.backgroundTop, Colors.backgroundMid, Colors.backgroundBottom]}
+            locations={[0, 0.6, 1]}
+            start={{ x: 0.3, y: 0 }}
+            end={{ x: 0.7, y: 1 }}
             style={styles.bgGradient}
           />
         </View>
@@ -130,7 +131,7 @@ export default function SplitScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F4F7',
+    backgroundColor: Colors.backgroundMid,
   },
   backgroundLayer: {
     position: 'absolute',
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 12,
-    backgroundColor: 'rgba(74, 144, 226, 0.08)',
+    backgroundColor: Colors.accentBlueSoft,
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 8,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
   },
   hintText: {
     marginLeft: 6,
-    color: '#2f5fa3',
+    color: Colors.textPrimary,
     fontSize: 12,
     fontWeight: '500',
   },
