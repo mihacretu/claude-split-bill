@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView, Text } from 'react-native';
+import { View, StyleSheet, SafeAreaView, ScrollView, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
@@ -20,7 +20,27 @@ export default function SplitScreen() {
   const [isAnyDragging, setIsAnyDragging] = useState(false);
   const [dragNonce, setDragNonce] = useState(0);
   const [draggedFromPerson, setDraggedFromPerson] = useState(null); // { person, item }
+  const [currentPage, setCurrentPage] = useState(0);
   const scrollRef = useRef(null);
+
+  // Pagination logic for vertical list
+  const itemsPerPage = 4;
+  const totalPages = Math.ceil(foodItems.length / itemsPerPage);
+  const startIndex = currentPage * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentFoodItems = foodItems.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   const handleDrop = (draggedItem, targetPerson) => {
     const result = handleItemDrop(
@@ -91,7 +111,7 @@ export default function SplitScreen() {
           </View>
           
           <View style={[styles.foodItemsContainer, isAnyDragging && styles.foodItemsContainerDragging]}>
-            {foodItems.map((item) => (
+            {currentFoodItems.map((item) => (
               <DraggableFoodItem 
                 key={item.id} 
                 item={item}
@@ -106,6 +126,38 @@ export default function SplitScreen() {
                 }}
               />
             ))}
+          </View>
+
+          <View style={styles.paginationControls}>
+            <TouchableOpacity
+              style={[styles.paginationButton, currentPage === 0 && styles.paginationButtonDisabled]}
+              onPress={handlePreviousPage}
+              disabled={currentPage === 0}
+            >
+              <Ionicons 
+                name="chevron-up" 
+                size={20} 
+                color={currentPage === 0 ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
+              />
+            </TouchableOpacity>
+
+            <View style={styles.pageIndicator}>
+              <Text style={styles.pageText}>
+                {currentPage + 1} of {totalPages}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.paginationButton, currentPage === totalPages - 1 && styles.paginationButtonDisabled]}
+              onPress={handleNextPage}
+              disabled={currentPage === totalPages - 1}
+            >
+              <Ionicons 
+                name="chevron-down" 
+                size={20} 
+                color={currentPage === totalPages - 1 ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
+              />
+            </TouchableOpacity>
           </View>
           
           <ScrollView 
@@ -205,9 +257,9 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     fontSize: 36,
   },
-  // Removed white card. Content sits directly on the grey background.
+  // Food items container (back to original vertical layout)
   foodItemsContainer: {
-    marginBottom: 40,
+    marginBottom: 20,
     position: 'relative',
     zIndex: 1,
   },
@@ -245,5 +297,51 @@ const styles = StyleSheet.create({
     flexGrow: 0,
     position: 'relative',
     zIndex: 0,
+  },
+  paginationControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 30,
+    paddingHorizontal: 20,
+  },
+  paginationButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  paginationButtonDisabled: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: 'rgba(255,255,255,0.08)',
+    opacity: 0.5,
+  },
+  pageIndicator: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  pageText: {
+    color: Colors.textOnLightPrimary,
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
