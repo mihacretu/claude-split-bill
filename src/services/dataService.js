@@ -110,3 +110,11 @@ export const people = [
     isAddButton: true
   }
 ];
+
+export const nearbyFriends = [
+  { id: 101, name: 'Oliver', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=72&h=72&fit=crop&crop=face' },
+  { id: 102, name: 'Steve', avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=72&h=72&fit=crop&crop=face' },
+  { id: 103, name: 'Anna', avatar: 'https://images.unsplash.com/photo-1548142813-c348350df52b?w=72&h=72&fit=crop&crop=face' },
+  { id: 104, name: 'Mark', avatar: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=72&h=72&fit=crop&crop=face' },
+  { id: 105, name: 'Sofia', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=72&h=72&fit=crop&crop=face' },
+];

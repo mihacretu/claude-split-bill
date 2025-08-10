@@ -24,13 +24,7 @@ const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments, onDraggi
   
   return (
     <View style={[styles.foodItem, getBackgroundStyle(), isDragging && styles.foodItemDragging, isLastInPage && styles.lastFoodItem]}>
-      <LinearGradient
-        colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
-        locations={[0, 0.6, 1]}
-        start={{ x: 0.3, y: 0 }}
-        end={{ x: 0.7, y: 1 }}
-        style={styles.cardGradient}
-      />
+      {/* Background gradient removed for transparent look */}
       {assignmentInfo.isShared && (
         <View style={styles.sharedIconContainer}>
           <Ionicons name="people" size={12} color="#ff8c00" />
@@ -86,15 +80,15 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 16,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.04)',
-    // ultra-soft shadow that blends with the light theme
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderColor: 'transparent',
+    // no shadow for a flat, blended look
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
     position: 'relative',
     zIndex: 0,
   },
@@ -154,7 +148,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   foodItemAssigned: {
-    backgroundColor: '#F0F6F2',
+    backgroundColor: 'transparent',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#D5E4D8',
@@ -162,7 +156,7 @@ const styles = StyleSheet.create({
     borderLeftColor: Colors.accentBlue,
   },
   foodItemShared: {
-    backgroundColor: '#FFF7E2',
+    backgroundColor: 'transparent',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#F7D5A6',

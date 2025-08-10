@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeInDown, ZoomIn, useSharedValue, useAnimatedStyle, withRepeat, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Droppable, Draggable } from 'react-native-reanimated-dnd';
 import { calculatePersonTotal } from '../utils';
 
-const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments, onStartDrag, onEndDrag, disabled = false, grayed = false, index = 0, shouldAnimateEntrance = true }) => {
+const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments, onStartDrag, onEndDrag, disabled = false, grayed = false, index = 0, shouldAnimateEntrance = true, onAddPress, onRemove, onDeleteModeChange, deleteMode = false }) => {
   const assignedItems = assignments[person.id] || [];
   
   const totalAmount = calculatePersonTotal(person, assignedItems, quantityAssignments, assignments);
@@ -15,6 +15,17 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
   // console.debug('Rendering person card:', person.name, 'items:', assignedItems.length);
 
   const enterDelay = (index || 0) * 60;
+
+  const rotation = useSharedValue(0);
+  const shakeStyle = useAnimatedStyle(() => ({ transform: [{ rotateZ: `${rotation.value}deg` }] }));
+  useEffect(() => {
+    if (deleteMode) {
+      rotation.value = withRepeat(withTiming(1.6, { duration: 90 }), -1, true);
+    } else {
+      rotation.value = withTiming(0, { duration: 120 });
+    }
+  }, [deleteMode, rotation]);
+
 
   if (person.isAddButton) {
     return (
@@ -26,21 +37,23 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
           disabled && styles.disabledCard
         ]}
       >
-        <View pointerEvents="none" style={styles.personCardShadow} />
-        <LinearGradient
-          colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
-          locations={[0, 0.6, 1]}
-          start={{ x: 0.3, y: 0 }}
-          end={{ x: 0.7, y: 1 }}
-          style={styles.cardGradient}
-        />
-        <View style={[styles.avatarContainer, styles.addPersonContainer, grayed && styles.grayedAvatar]}>
-          <Ionicons 
-            name="person-add" 
-            size={32} 
-            color={grayed ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
+        <TouchableOpacity activeOpacity={0.8} onPress={onAddPress} style={{ width: '100%', alignItems: 'center' }}>
+          <View pointerEvents="none" style={styles.personCardShadow} />
+          <LinearGradient
+            colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
+            locations={[0, 0.6, 1]}
+            start={{ x: 0.3, y: 0 }}
+            end={{ x: 0.7, y: 1 }}
+            style={styles.cardGradient}
           />
-        </View>
+          <View style={[styles.avatarContainer, styles.addPersonContainer, grayed && styles.grayedAvatar]}>
+            <Ionicons 
+              name="person-add" 
+              size={32} 
+              color={grayed ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
+            />
+          </View>
+        </TouchableOpacity>
       </Animated.View>
     );
   }
@@ -135,7 +148,22 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
   }
 
   return (
-    <Animated.View entering={shouldAnimateEntrance ? FadeInDown.springify().damping(16).stiffness(180).delay(enterDelay) : undefined}>
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={() => {
+        // If already in delete mode, cancel it
+        if (deleteMode && !disabled && !person.isAddButton && person.name !== 'You') {
+          onDeleteModeChange && onDeleteModeChange(person.id, false);
+        }
+      }}
+      onLongPress={() => {
+        if (!disabled && !person.isAddButton && person.name !== 'You') {
+          onDeleteModeChange && onDeleteModeChange(person.id, true);
+        }
+      }}
+      delayLongPress={300}
+    >
+    <Animated.View entering={shouldAnimateEntrance ? FadeInDown.springify().damping(16).stiffness(180).delay(enterDelay) : undefined} style={shakeStyle}>
       <Droppable
         droppableId={`person-${person.id}`}
         onDrop={(item) => onDrop(item, person)}
@@ -148,8 +176,23 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
         activeStyle={styles.personCardActive}
       >
         {cardContent}
+        {deleteMode && !disabled && !person.isAddButton && person.name !== 'You' && (
+          <Animated.View entering={ZoomIn.springify()} style={styles.removeBtn}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => { 
+                onRemove && onRemove(person); 
+                onDeleteModeChange && onDeleteModeChange(person.id, false); 
+              }}
+              style={{ width: 26, height: 26, justifyContent: 'center', alignItems: 'center' }}
+            >
+              <Ionicons name="close" size={14} color="#ef4444" />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       </Droppable>
     </Animated.View>
+    </TouchableOpacity>
   );
 };
 
@@ -168,6 +211,19 @@ const styles = StyleSheet.create({
     zIndex: 0,
     elevation: 0,
     overflow: 'visible',
+  },
+  removeBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.22)',
   },
   // Soft darker contour similar to menu items but with darker tone
   personCardShadow: {
