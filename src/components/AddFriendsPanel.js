@@ -14,13 +14,15 @@ export default function AddFriendsPanel({ visible, friends, onClose, onStartDrag
       style={styles.container}
     >
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headBold}>Friends</Text>
-          <Text style={styles.headLight}>nearby</Text>
+        <View style={styles.topRow}>
+          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <Ionicons name="close" size={18} color={Colors.textOnLightPrimary} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-          <Ionicons name="close" size={18} color={Colors.textOnLightPrimary} />
-        </TouchableOpacity>
+        <Text style={styles.title}>
+          <Text style={styles.headBold}>Friends</Text>
+          <Text style={styles.headLight}> nearby</Text>
+        </Text>
       </View>
       <View style={styles.grid}>
         {friends.map((friend) => (
@@ -59,13 +61,19 @@ const styles = StyleSheet.create({
     elevation: 40,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: 16,
   },
-  headBold: { color: Colors.textOnLightPrimary, fontWeight: '800', fontSize: 28 },
-  headLight: { color: Colors.textOnLightPrimary, opacity: 0.7, fontWeight: '600', fontSize: 22, marginTop: -6 },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 36,
+    color: Colors.textOnLightPrimary,
+  },
+  headBold: { fontWeight: 'bold' },
+  headLight: { fontWeight: 'normal' },
   closeBtn: {
     width: 28,
     height: 28,
