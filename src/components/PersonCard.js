@@ -1,25 +1,31 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Droppable, Draggable } from 'react-native-reanimated-dnd';
 import { calculatePersonTotal } from '../utils';
 
-const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments, onStartDrag, onEndDrag, disabled = false, grayed = false }) => {
+const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments, onStartDrag, onEndDrag, disabled = false, grayed = false, index = 0, shouldAnimateEntrance = true }) => {
   const assignedItems = assignments[person.id] || [];
   
   const totalAmount = calculatePersonTotal(person, assignedItems, quantityAssignments, assignments);
 
-  console.log('🎯 Rendering person card:', person.name, 'assigned items:', assignedItems.length);
+  // console.debug('Rendering person card:', person.name, 'items:', assignedItems.length);
+
+  const enterDelay = (index || 0) * 60;
 
   if (person.isAddButton) {
     return (
-      <View style={[
-        styles.addPersonCard,
-        grayed && styles.grayedCard,
-        disabled && styles.disabledCard
-      ]}>
+      <Animated.View
+        entering={shouldAnimateEntrance ? FadeInDown.springify().damping(16).stiffness(180).delay(enterDelay) : undefined}
+        style={[
+          styles.addPersonCard,
+          grayed && styles.grayedCard,
+          disabled && styles.disabledCard
+        ]}
+      >
         <View pointerEvents="none" style={styles.personCardShadow} />
         <LinearGradient
           colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
@@ -35,7 +41,7 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
             color={grayed ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
           />
         </View>
-      </View>
+      </Animated.View>
     );
   }
 
@@ -52,7 +58,11 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
         style={styles.cardGradient}
       />
       <View style={[styles.avatarContainer, grayed && styles.grayedAvatar]}>
-        <Image source={{ uri: person.avatar }} style={[styles.avatar, grayed && styles.grayedImage]} />
+        <Animated.Image
+          entering={shouldAnimateEntrance ? ZoomIn.springify().damping(16).stiffness(220).delay(enterDelay + 80) : undefined}
+          source={{ uri: person.avatar }}
+          style={[styles.avatar, grayed && styles.grayedImage]}
+        />
       </View>
       <Text style={[styles.personName, grayed && styles.grayedText]}>{person.name}</Text>
       {(parseFloat(totalAmount) > 0 || assignedItems.length > 0 || person.hasFood) && (
@@ -60,23 +70,24 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
       )}
       
       <View style={styles.itemsContainer}>
-        {assignedItems.map((item, index) => {
+        {assignedItems.map((item, idx) => {
           const assignmentInfo = getItemAssignmentInfo(item.id);
           const personQuantity = quantityAssignments[item.id]?.[person.id] || 1;
           const showQuantityIndicator = item.quantity > 1;
           
           return (
             <Draggable
-              key={`assigned-${item.id}-${index}`}
+              key={`assigned-${item.id}`}
               data={{ item, person }}
-              style={{ marginRight: index < assignedItems.length - 1 ? 8 : 0, position: 'relative', zIndex: 1000000 }}
+              style={{ marginRight: idx < assignedItems.length - 1 ? 8 : 0, position: 'relative', zIndex: 1000000 }}
               draggingStyle={styles.draggingOverlaySmall}
               onDragStart={disabled ? undefined : () => onStartDrag && onStartDrag({ person, item })}
               onDragEnd={disabled ? undefined : () => onEndDrag && onEndDrag()}
               disabled={disabled}
             >
-              <View style={styles.personImageContainer}>
-                <Image 
+              <Animated.View entering={shouldAnimateEntrance ? ZoomIn.springify().damping(14).stiffness(220).delay(enterDelay + 120 + idx * 40) : undefined} style={styles.personImageContainer}>
+                <Animated.Image 
+                  entering={shouldAnimateEntrance ? ZoomIn.springify().damping(16).stiffness(260).delay(enterDelay + 150 + idx * 40) : undefined}
                   source={{ uri: item.image }} 
                   style={[styles.personItemImage, grayed && styles.grayedImage]}
                 />
@@ -90,13 +101,14 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
                     <Ionicons name="people" size={8} color="#fff" />
                   </View>
                 )}
-              </View>
+              </Animated.View>
             </Draggable>
           );
         })}
         
         {person.hasFood && !assignedItems.length && (
-          <Image 
+          <Animated.Image 
+            entering={shouldAnimateEntrance ? ZoomIn.springify().damping(16).stiffness(240).delay(enterDelay + 120) : undefined}
             source={{ uri: person.foodImage }} 
             style={styles.personItemImage} 
           />
@@ -107,7 +119,8 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
 
   if (disabled) {
     return (
-      <View
+      <Animated.View
+        entering={shouldAnimateEntrance ? FadeInDown.springify().damping(16).stiffness(180).delay(enterDelay) : undefined}
         style={[
           styles.personCard,
           (person.hasFood || assignedItems.length > 0) && styles.personCardWithFood,
@@ -117,24 +130,26 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
         ]}
       >
         {cardContent}
-      </View>
+      </Animated.View>
     );
   }
 
   return (
-    <Droppable
-      droppableId={`person-${person.id}`}
-      onDrop={(item) => onDrop(item, person)}
-      style={[
-        styles.personCard,
-        (person.hasFood || assignedItems.length > 0) && styles.personCardWithFood,
-        isCurrentUser && styles.currentUserCard,
-        grayed && styles.grayedCard
-      ]}
-      activeStyle={styles.personCardActive}
-    >
-      {cardContent}
-    </Droppable>
+    <Animated.View entering={shouldAnimateEntrance ? FadeInDown.springify().damping(16).stiffness(180).delay(enterDelay) : undefined}>
+      <Droppable
+        droppableId={`person-${person.id}`}
+        onDrop={(item) => onDrop(item, person)}
+        style={[
+          styles.personCard,
+          (person.hasFood || assignedItems.length > 0) && styles.personCardWithFood,
+          isCurrentUser && styles.currentUserCard,
+          grayed && styles.grayedCard
+        ]}
+        activeStyle={styles.personCardActive}
+      >
+        {cardContent}
+      </Droppable>
+    </Animated.View>
   );
 };
 

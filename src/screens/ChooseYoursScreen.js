@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
 import { DropProvider } from 'react-native-reanimated-dnd';
-import { DraggableFoodItem, QuantityModal, PersonCard, BackButton, Title } from '../components';
+import { DraggableFoodItem, QuantityModal, PersonCard, BackButton, Title, SwapBarPager } from '../components';
 import { unassignItemFromPerson } from '../services';
 import { foodItems, people, getItemAssignmentInfo, handleItemDrop, handleQuantityAssignment } from '../services';
 
@@ -19,6 +19,7 @@ export default function ChooseYoursScreen({ navigation }) {
   const [isAnyDragging, setIsAnyDragging] = useState(false);
   const [dragNonce, setDragNonce] = useState(0);
   const [draggedFromPerson, setDraggedFromPerson] = useState(null); // { person, item }
+  const hasAnimatedOnceRef = useRef(false);
   const [currentPage, setCurrentPage] = useState(0);
   const scrollRef = useRef(null);
 
@@ -92,6 +93,10 @@ export default function ChooseYoursScreen({ navigation }) {
   // Get all assigned item IDs to check assignment status
   const assignedItemIds = Object.values(assignments).flat().map(item => item.id);
 
+  useEffect(() => {
+    hasAnimatedOnceRef.current = true;
+  }, []);
+
   return (
     <DropProvider key={`provider-${assignedItemIds.length}-${dragNonce}`}>
       <SafeAreaView style={styles.container}>
@@ -132,37 +137,13 @@ export default function ChooseYoursScreen({ navigation }) {
             ))}
           </View>
 
-          <View style={styles.paginationControls}>
-            <TouchableOpacity
-              style={[styles.paginationButton, currentPage === 0 && styles.paginationButtonDisabled]}
-              onPress={handlePreviousPage}
-              disabled={currentPage === 0}
-            >
-              <Ionicons 
-                name="chevron-back" 
-                size={20} 
-                color={currentPage === 0 ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
-              />
-            </TouchableOpacity>
-
-            <View style={styles.pageIndicator}>
-              <Text style={styles.pageText}>
-                {currentPage + 1} of {totalPages}
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.paginationButton, currentPage === totalPages - 1 && styles.paginationButtonDisabled]}
-              onPress={handleNextPage}
-              disabled={currentPage === totalPages - 1}
-            >
-              <Ionicons 
-                name="chevron-forward" 
-                size={20} 
-                color={currentPage === totalPages - 1 ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
-              />
-            </TouchableOpacity>
-          </View>
+          <SwapBarPager
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrev={handlePreviousPage}
+            onNext={handleNextPage}
+            onSetPage={(p) => setCurrentPage(p)}
+          />
           
           <ScrollView 
             horizontal 
@@ -172,9 +153,11 @@ export default function ChooseYoursScreen({ navigation }) {
             scrollEnabled={!isAnyDragging}
             nestedScrollEnabled={false}
           >
-            {people.map((person) => (
+            {people.map((person, idx) => (
               <PersonCard
                 key={person.id}
+                index={idx}
+                shouldAnimateEntrance={!hasAnimatedOnceRef.current}
                 person={person}
                 assignments={assignments}
                 onDrop={handleDrop}

@@ -26,11 +26,48 @@ export const handleItemDrop = (
     return { shouldUpdate: false };
   }
 
-  // Check if this is a draggable food item from the bill (should have an `id` property)
-  // If draggedItem has a `person` property, it means it's being dragged from another person card
+  // If draggedItem has a `person` property, it is being dragged from a person card → reassign
   if (draggedItem.person) {
-    console.log('❌ Cannot move items between person cards');
-    return { shouldUpdate: false };
+    const sourcePerson = draggedItem.person;
+    if (!sourcePerson || sourcePerson.id === targetPerson.id) {
+      return { shouldUpdate: false };
+    }
+
+    const sourceItems = assignments[sourcePerson.id] || [];
+    const targetItems = assignments[targetPerson.id] || [];
+    const withoutFromSource = sourceItems.filter(i => i.id !== draggedItem.item.id);
+    const alreadyOnTarget = targetItems.some(i => i.id === draggedItem.item.id);
+
+    // If target already has the item, cancel move (avoid duplicates)
+    if (alreadyOnTarget) {
+      // Still need to ensure source keeps the item if we canceled
+      return { shouldUpdate: false };
+    }
+
+    const movedItem = draggedItem.item;
+    const newAssignments = {
+      ...assignments,
+      [sourcePerson.id]: withoutFromSource,
+      [targetPerson.id]: [...targetItems, movedItem]
+    };
+
+    // Move quantity assignment if it exists
+    let newQuantityAssignments = quantityAssignments;
+    const sourceQuantities = quantityAssignments[movedItem.id] || {};
+    const qtyForSource = sourceQuantities[sourcePerson.id];
+    if (typeof qtyForSource === 'number') {
+      newQuantityAssignments = {
+        ...quantityAssignments,
+        [movedItem.id]: {
+          ...sourceQuantities,
+          [targetPerson.id]: (sourceQuantities[targetPerson.id] || 0) + qtyForSource,
+          [sourcePerson.id]: undefined,
+        }
+      };
+    }
+
+    console.log('🔁 Reassigned', movedItem.name, 'from', sourcePerson.name, 'to', targetPerson.name);
+    return { shouldUpdate: true, newAssignments, newQuantityAssignments };
   }
 
   const currentAssignments = assignments[targetPerson.id] || [];
