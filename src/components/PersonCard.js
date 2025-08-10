@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Droppable, Draggable } from 'react-native-reanimated-dnd';
 import { calculatePersonTotal } from '../utils';
 
-const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments, onStartDrag, onEndDrag, disabled = false, grayed = false, index = 0, shouldAnimateEntrance = true }) => {
+const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments, onStartDrag, onEndDrag, disabled = false, grayed = false, index = 0, shouldAnimateEntrance = true, onAddPress }) => {
   const assignedItems = assignments[person.id] || [];
   
   const totalAmount = calculatePersonTotal(person, assignedItems, quantityAssignments, assignments);
@@ -26,21 +26,23 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
           disabled && styles.disabledCard
         ]}
       >
-        <View pointerEvents="none" style={styles.personCardShadow} />
-        <LinearGradient
-          colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
-          locations={[0, 0.6, 1]}
-          start={{ x: 0.3, y: 0 }}
-          end={{ x: 0.7, y: 1 }}
-          style={styles.cardGradient}
-        />
-        <View style={[styles.avatarContainer, styles.addPersonContainer, grayed && styles.grayedAvatar]}>
-          <Ionicons 
-            name="person-add" 
-            size={32} 
-            color={grayed ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
+        <TouchableOpacity activeOpacity={0.8} onPress={onAddPress} style={{ width: '100%', alignItems: 'center' }}>
+          <View pointerEvents="none" style={styles.personCardShadow} />
+          <LinearGradient
+            colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
+            locations={[0, 0.6, 1]}
+            start={{ x: 0.3, y: 0 }}
+            end={{ x: 0.7, y: 1 }}
+            style={styles.cardGradient}
           />
-        </View>
+          <View style={[styles.avatarContainer, styles.addPersonContainer, grayed && styles.grayedAvatar]}>
+            <Ionicons 
+              name="person-add" 
+              size={32} 
+              color={grayed ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
+            />
+          </View>
+        </TouchableOpacity>
       </Animated.View>
     );
   }

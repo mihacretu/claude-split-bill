@@ -4,9 +4,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
 import { DropProvider } from 'react-native-reanimated-dnd';
-import { DraggableFoodItem, QuantityModal, PersonCard, BackButton, Title, SwapBarPager } from '../components';
+import { DraggableFoodItem, QuantityModal, PersonCard, BackButton, Title, SwapBarPager, AddFriendsPanel } from '../components';
 import { unassignItemFromPerson } from '../services';
-import { foodItems, people, getItemAssignmentInfo, handleItemDrop, handleQuantityAssignment } from '../services';
+import { foodItems, people, nearbyFriends, getItemAssignmentInfo, handleItemDrop, handleQuantityAssignment } from '../services';
 
 
 
@@ -18,9 +18,14 @@ export default function SplitScreen({ navigation }) {
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [pendingAssignment, setPendingAssignment] = useState(null);
   const [isAnyDragging, setIsAnyDragging] = useState(false);
+  // Remount nonce to clear DnD overlays; we'll preserve carousel position manually
   const [dragNonce, setDragNonce] = useState(0);
+  const peopleScrollRef = useRef(null);
+  const peopleScrollXRef = useRef(0);
   const hasAnimatedOnceRef = useRef(false);
   const [draggedFromPerson, setDraggedFromPerson] = useState(null); // { person, item }
+  const [showAddFriends, setShowAddFriends] = useState(false);
+  const [availableFriends, setAvailableFriends] = useState(nearbyFriends);
   const [currentPage, setCurrentPage] = useState(0);
   const scrollRef = useRef(null);
 
@@ -44,6 +49,23 @@ export default function SplitScreen({ navigation }) {
   };
 
   const handleDrop = (draggedItem, targetPerson) => {
+    // If user drops a friend tile from AddFriendsPanel onto the people strip, append a new person
+    if (draggedItem?.type === 'person' && draggedItem?.person) {
+      // Avoid duplicates by name/id
+      const exists = people.some((p) => p.name === draggedItem.person.name || p.id === draggedItem.person.id);
+      if (!exists) {
+        people.splice(people.length - 1, 0, {
+          id: Date.now(),
+          name: draggedItem.person.name,
+          avatar: draggedItem.person.avatar,
+          hasFood: false,
+        });
+        setAvailableFriends((prev) => prev.filter((f) => f.id !== draggedItem.person.id));
+      }
+      setShowAddFriends(false);
+      setDragNonce((n) => n + 1);
+      return;
+    }
     const result = handleItemDrop(
       draggedItem, 
       targetPerson, 
@@ -52,6 +74,8 @@ export default function SplitScreen({ navigation }) {
       (pendingData) => {
         setPendingAssignment(pendingData);
         setShowQuantityModal(true);
+        // Clear any lingering drag preview while the quantity modal is open
+        setDragNonce((n) => n + 1);
       }
     );
     
@@ -62,10 +86,9 @@ export default function SplitScreen({ navigation }) {
       }
       // A successful drop consumed the drag, clear the dragged-from state
       setDraggedFromPerson(null);
+      setDragNonce((n) => n + 1);
     }
 
-    // Refresh DnD provider to clear any temporary previews without re-running entrance animations
-    setDragNonce((n) => n + 1);
   };
 
   const handleQuantityConfirm = (quantity) => {
@@ -83,6 +106,8 @@ export default function SplitScreen({ navigation }) {
     
     setShowQuantityModal(false);
     setPendingAssignment(null);
+    // Also clear any temporary previews after confirming quantity
+    setDragNonce((n) => n + 1);
   };
 
   const handleQuantityCancel = () => {
@@ -97,6 +122,17 @@ export default function SplitScreen({ navigation }) {
   useEffect(() => {
     hasAnimatedOnceRef.current = true;
   }, []);
+
+  // After provider remount, restore people carousel scroll offset
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      if (peopleScrollRef.current) {
+        try {
+          peopleScrollRef.current.scrollTo({ x: peopleScrollXRef.current, animated: false });
+        } catch (_) {}
+      }
+    });
+  }, [dragNonce]);
 
   return (
     <DropProvider key={`provider-${dragNonce}`}>
@@ -151,8 +187,11 @@ export default function SplitScreen({ navigation }) {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.peopleContainer}
             style={styles.peopleScrollView}
+            ref={peopleScrollRef}
             scrollEnabled={!isAnyDragging}
             nestedScrollEnabled={false}
+            onScroll={(e) => { peopleScrollXRef.current = e.nativeEvent.contentOffset.x; }}
+            scrollEventThrottle={16}
           >
             {people.map((person, idx) => (
               <PersonCard
@@ -162,6 +201,7 @@ export default function SplitScreen({ navigation }) {
                 person={person}
                 assignments={assignments}
                 onDrop={handleDrop}
+                onAddPress={() => setShowAddFriends(true)}
                 // When a drag starts inside a person card
                 onStartDrag={(payload) => {
                   setDraggedFromPerson(payload); // { person, item }
@@ -197,6 +237,13 @@ export default function SplitScreen({ navigation }) {
           maxQuantity={pendingAssignment?.maxQuantity}
           onConfirm={handleQuantityConfirm}
           onCancel={handleQuantityCancel}
+        />
+        <AddFriendsPanel
+          visible={showAddFriends}
+          friends={availableFriends}
+          onClose={() => setShowAddFriends(false)}
+          onStartDrag={() => setIsAnyDragging(true)}
+          onEndDrag={() => setIsAnyDragging(false)}
         />
       </SafeAreaView>
     </DropProvider>
@@ -236,6 +283,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  addFriendsBtn: {
+    marginLeft: 'auto',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backInline: {
     marginBottom: 0,
