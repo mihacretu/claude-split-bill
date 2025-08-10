@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Droppable, Draggable } from 'react-native-reanimated-dnd';
 import { calculatePersonTotal } from '../utils';
 
-const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments, onStartDrag, onEndDrag }) => {
+const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quantityAssignments, onStartDrag, onEndDrag, disabled = false, grayed = false }) => {
   const assignedItems = assignments[person.id] || [];
   
   const totalAmount = calculatePersonTotal(person, assignedItems, quantityAssignments, assignments);
@@ -15,7 +15,11 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
 
   if (person.isAddButton) {
     return (
-      <View style={styles.addPersonCard}>
+      <View style={[
+        styles.addPersonCard,
+        grayed && styles.grayedCard,
+        disabled && styles.disabledCard
+      ]}>
         <View pointerEvents="none" style={styles.personCardShadow} />
         <LinearGradient
           colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
@@ -24,8 +28,12 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
           end={{ x: 0.7, y: 1 }}
           style={styles.cardGradient}
         />
-        <View style={[styles.avatarContainer, styles.addPersonContainer]}>
-          <Ionicons name="person-add" size={32} color={Colors.textOnLightPrimary} />
+        <View style={[styles.avatarContainer, styles.addPersonContainer, grayed && styles.grayedAvatar]}>
+          <Ionicons 
+            name="person-add" 
+            size={32} 
+            color={grayed ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
+          />
         </View>
       </View>
     );
@@ -33,17 +41,8 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
 
   const isCurrentUser = person.name === 'You';
 
-  return (
-    <Droppable
-      droppableId={`person-${person.id}`}
-      onDrop={(item) => onDrop(item, person)}
-      style={[
-        styles.personCard,
-        (person.hasFood || assignedItems.length > 0) && styles.personCardWithFood,
-        isCurrentUser && styles.currentUserCard
-      ]}
-      activeStyle={styles.personCardActive}
-    >
+  const cardContent = (
+    <>
       <View pointerEvents="none" style={styles.personCardShadow} />
       <LinearGradient
         colors={[Colors.cardTop, Colors.cardMid, Colors.cardBottom]}
@@ -52,10 +51,10 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
         end={{ x: 0.7, y: 1 }}
         style={styles.cardGradient}
       />
-      <View style={styles.avatarContainer}>
-        <Image source={{ uri: person.avatar }} style={styles.avatar} />
+      <View style={[styles.avatarContainer, grayed && styles.grayedAvatar]}>
+        <Image source={{ uri: person.avatar }} style={[styles.avatar, grayed && styles.grayedImage]} />
       </View>
-      <Text style={styles.personName}>{person.name}</Text>
+      <Text style={[styles.personName, grayed && styles.grayedText]}>{person.name}</Text>
       {(parseFloat(totalAmount) > 0 || assignedItems.length > 0 || person.hasFood) && (
         <Text style={styles.personAmount}>{totalAmount}</Text>
       )}
@@ -72,13 +71,14 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
               data={{ item, person }}
               style={{ marginRight: index < assignedItems.length - 1 ? 8 : 0, position: 'relative', zIndex: 1000000 }}
               draggingStyle={styles.draggingOverlaySmall}
-              onDragStart={() => onStartDrag && onStartDrag({ person, item })}
-              onDragEnd={() => onEndDrag && onEndDrag()}
+              onDragStart={disabled ? undefined : () => onStartDrag && onStartDrag({ person, item })}
+              onDragEnd={disabled ? undefined : () => onEndDrag && onEndDrag()}
+              disabled={disabled}
             >
               <View style={styles.personImageContainer}>
                 <Image 
                   source={{ uri: item.image }} 
-                  style={styles.personItemImage}
+                  style={[styles.personItemImage, grayed && styles.grayedImage]}
                 />
                 {showQuantityIndicator && (
                   <View style={styles.quantityIndicator}>
@@ -102,6 +102,38 @@ const PersonCard = ({ person, assignments, onDrop, getItemAssignmentInfo, quanti
           />
         )}
       </View>
+    </>
+  );
+
+  if (disabled) {
+    return (
+      <View
+        style={[
+          styles.personCard,
+          (person.hasFood || assignedItems.length > 0) && styles.personCardWithFood,
+          isCurrentUser && styles.currentUserCard,
+          grayed && styles.grayedCard,
+          disabled && styles.disabledCard
+        ]}
+      >
+        {cardContent}
+      </View>
+    );
+  }
+
+  return (
+    <Droppable
+      droppableId={`person-${person.id}`}
+      onDrop={(item) => onDrop(item, person)}
+      style={[
+        styles.personCard,
+        (person.hasFood || assignedItems.length > 0) && styles.personCardWithFood,
+        isCurrentUser && styles.currentUserCard,
+        grayed && styles.grayedCard
+      ]}
+      activeStyle={styles.personCardActive}
+    >
+      {cardContent}
     </Droppable>
   );
 };
@@ -277,6 +309,22 @@ const styles = StyleSheet.create({
     zIndex: 10,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  grayedCard: {
+    opacity: 0.5,
+  },
+  disabledCard: {
+    pointerEvents: 'none',
+  },
+  grayedAvatar: {
+    opacity: 0.6,
+  },
+  grayedImage: {
+    opacity: 0.6,
+  },
+  grayedText: {
+    opacity: 0.6,
+    color: Colors.textOnLightSecondary,
   },
 });
 

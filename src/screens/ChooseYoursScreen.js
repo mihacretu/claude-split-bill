@@ -11,8 +11,7 @@ import { foodItems, people, getItemAssignmentInfo, handleItemDrop, handleQuantit
 
 
 
-
-export default function SplitScreen({ navigation }) {
+export default function ChooseYoursScreen({ navigation }) {
   const [assignments, setAssignments] = useState({});
   const [quantityAssignments, setQuantityAssignments] = useState({});
   const [showQuantityModal, setShowQuantityModal] = useState(false);
@@ -43,6 +42,11 @@ export default function SplitScreen({ navigation }) {
   };
 
   const handleDrop = (draggedItem, targetPerson) => {
+    // Only allow drops on "You" person
+    if (targetPerson.name !== 'You') {
+      return;
+    }
+
     const result = handleItemDrop(
       draggedItem, 
       targetPerson, 
@@ -103,11 +107,11 @@ export default function SplitScreen({ navigation }) {
         <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} scrollEnabled={!isAnyDragging}>
           <View style={styles.headerRow}>
             <BackButton style={styles.backInline} onPress={() => navigation.goBack()} />
-            <Title boldText="Split" regularText=" order" style={styles.titleInline} />
+            <Title boldText="Choose" regularText=" yours" style={styles.titleInline} />
           </View>
           <View style={styles.hintRow}>
             <Ionicons name="hand-right" size={14} color={'rgba(79, 209, 197, 0.8)'} />
-            <Text style={styles.hintText}>Drag a dish image onto a person to assign</Text>
+            <Text style={styles.hintText}>Drag a dish image onto your card to assign</Text>
           </View>
           
           <View style={[styles.foodItemsContainer, isAnyDragging && styles.foodItemsContainerDragging]}>
@@ -176,12 +180,15 @@ export default function SplitScreen({ navigation }) {
                 onDrop={handleDrop}
                 // When a drag starts inside a person card
                 onStartDrag={(payload) => {
-                  setDraggedFromPerson(payload); // { person, item }
+                  // Only allow dragging from "You" person
+                  if (payload.person.name === 'You') {
+                    setDraggedFromPerson(payload); // { person, item }
+                  }
                 }}
                 // When drag ends, handle auto-unassign if not dropped on valid target
                 onEndDrag={() => {
                   // If we have a dragged item and it wasn't consumed by a valid drop, unassign it
-                  if (draggedFromPerson) {
+                  if (draggedFromPerson && draggedFromPerson.person.name === 'You') {
                     const result = unassignItemFromPerson(
                       draggedFromPerson.person,
                       draggedFromPerson.item,
@@ -197,6 +204,9 @@ export default function SplitScreen({ navigation }) {
                 }}
                 getItemAssignmentInfo={(itemId) => getItemAssignmentInfo(itemId, assignments)}
                 quantityAssignments={quantityAssignments}
+                // Disable interaction for non-You cards including Add Person button
+                disabled={person.name !== 'You'}
+                grayed={person.name !== 'You'}
               />
             ))}
           </ScrollView>

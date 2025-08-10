@@ -48,7 +48,7 @@ const DraggableFoodItem = ({ item, assignmentInfo, quantityAssignments, onDraggi
           onDraggingChange && onDraggingChange(false);
         }}
       >
-        <View style={styles.imageWrapper}>
+        <View style={[styles.imageWrapper, isDragging && styles.imageWrapperDragging]}>
           <Image source={{ uri: item.image }} style={styles.foodImage} />
         </View>
       </Draggable>
@@ -190,6 +190,7 @@ const styles = StyleSheet.create({
     elevation: 0,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   draggingOverlay: {
     zIndex: 9999,
@@ -199,6 +200,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     transform: [{ scale: 1.02 }],
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+  },
+  imageWrapperDragging: {
+    marginRight: 0,
   },
   sharedIconContainer: {
     position: 'absolute',
