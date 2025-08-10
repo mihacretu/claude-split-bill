@@ -116,10 +116,14 @@ export const handleQuantityAssignment = (
   if (!pendingAssignment) return { shouldUpdate: false };
 
   const { item, person } = pendingAssignment;
-  
+  // Ensure the item appears only once in a person's assigned list
+  const current = assignments[person.id] || [];
+  const alreadyHas = current.some((i) => i.id === item.id);
+  const nextItems = alreadyHas ? current : [...current, item];
+
   const newAssignments = {
     ...assignments,
-    [person.id]: [...(assignments[person.id] || []), item]
+    [person.id]: nextItems
   };
   
   const newQuantityAssignments = {
@@ -154,6 +158,29 @@ export const unassignItemFromPerson = (person, item, assignments, quantityAssign
   return {
     shouldUpdate: true,
     newAssignments: { ...assignments, [person.id]: updatedItems },
+    newQuantityAssignments,
+  };
+};
+
+export const removePersonAndUnassign = (person, assignments, quantityAssignments) => {
+  if (!person) return { shouldUpdate: false };
+
+  const newAssignments = { ...assignments };
+  delete newAssignments[person.id];
+
+  const newQuantityAssignments = {};
+  for (const [itemId, perPersonQty] of Object.entries(quantityAssignments)) {
+    const { [person.id]: _removed, ...rest } = perPersonQty || {};
+    // Only keep entry if there are remaining quantities
+    const hasAny = Object.values(rest).some((q) => typeof q === 'number' && q > 0);
+    if (hasAny) {
+      newQuantityAssignments[itemId] = rest;
+    }
+  }
+
+  return {
+    shouldUpdate: true,
+    newAssignments,
     newQuantityAssignments,
   };
 };

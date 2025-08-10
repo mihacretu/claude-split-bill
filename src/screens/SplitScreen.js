@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, StyleSheet, SafeAreaView, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
 import { DropProvider } from 'react-native-reanimated-dnd';
 import { DraggableFoodItem, QuantityModal, PersonCard, BackButton, Title, SwapBarPager, AddFriendsPanel } from '../components';
-import { unassignItemFromPerson } from '../services';
+import { unassignItemFromPerson, removePersonAndUnassign } from '../services';
 import { foodItems, people, nearbyFriends, getItemAssignmentInfo, handleItemDrop, handleQuantityAssignment } from '../services';
 
 
@@ -26,8 +26,10 @@ export default function SplitScreen({ navigation }) {
   const [draggedFromPerson, setDraggedFromPerson] = useState(null); // { person, item }
   const [showAddFriends, setShowAddFriends] = useState(false);
   const [availableFriends, setAvailableFriends] = useState(nearbyFriends);
+  const [peopleList, setPeopleList] = useState(people);
   const [currentPage, setCurrentPage] = useState(0);
   const scrollRef = useRef(null);
+  const [activeDeletePersonId, setActiveDeletePersonId] = useState(null);
 
   // Pagination logic for vertical list
   const itemsPerPage = 4;
@@ -52,13 +54,14 @@ export default function SplitScreen({ navigation }) {
     // If user drops a friend tile from AddFriendsPanel onto the people strip, append a new person
     if (draggedItem?.type === 'person' && draggedItem?.person) {
       // Avoid duplicates by name/id
-      const exists = people.some((p) => p.name === draggedItem.person.name || p.id === draggedItem.person.id);
+      const exists = peopleList.some((p) => p.name === draggedItem.person.name || p.id === draggedItem.person.id);
       if (!exists) {
-        people.splice(people.length - 1, 0, {
-          id: Date.now(),
-          name: draggedItem.person.name,
-          avatar: draggedItem.person.avatar,
-          hasFood: false,
+        const newPerson = { id: Date.now(), name: draggedItem.person.name, avatar: draggedItem.person.avatar, hasFood: false };
+        setPeopleList((prev) => {
+          const addIdx = Math.max(0, prev.findIndex((p) => p.isAddButton));
+          const arr = prev.slice();
+          arr.splice(addIdx, 0, newPerson);
+          return arr;
         });
         setAvailableFriends((prev) => prev.filter((f) => f.id !== draggedItem.person.id));
       }
@@ -86,8 +89,9 @@ export default function SplitScreen({ navigation }) {
       }
       // A successful drop consumed the drag, clear the dragged-from state
       setDraggedFromPerson(null);
-      setDragNonce((n) => n + 1);
     }
+    // Always clear any lingering drag preview after drop
+    requestAnimationFrame(() => setDragNonce((n) => n + 1));
 
   };
 
@@ -107,7 +111,7 @@ export default function SplitScreen({ navigation }) {
     setShowQuantityModal(false);
     setPendingAssignment(null);
     // Also clear any temporary previews after confirming quantity
-    setDragNonce((n) => n + 1);
+    requestAnimationFrame(() => setDragNonce((n) => n + 1));
   };
 
   const handleQuantityCancel = () => {
@@ -134,6 +138,33 @@ export default function SplitScreen({ navigation }) {
     });
   }, [dragNonce]);
 
+
+  // Cancel delete mode for all cards
+  const cancelAllDeleteModes = useCallback(() => {
+    if (activeDeletePersonId !== null) {
+      setActiveDeletePersonId(null);
+    }
+  }, [activeDeletePersonId]);
+
+  // Memoize the onRemove callback to prevent unnecessary re-renders
+  const handleRemovePerson = useCallback((p) => {
+    if (p.name === 'You' || p.isAddButton) {
+      return;
+    }
+    
+    const result = removePersonAndUnassign(p, assignments, quantityAssignments);
+    if (result.shouldUpdate) {
+      setAssignments(result.newAssignments);
+      setQuantityAssignments(result.newQuantityAssignments);
+    }
+    
+    // Remove from people list (immutable)
+    setPeopleList((prev) => prev.filter((pp) => pp.id !== p.id));
+    
+    // Clear delete mode
+    setActiveDeletePersonId(null);
+  }, [peopleList, assignments, quantityAssignments]);
+
   return (
     <DropProvider key={`provider-${dragNonce}`}>
       <SafeAreaView style={styles.container}>
@@ -146,7 +177,13 @@ export default function SplitScreen({ navigation }) {
             style={styles.bgGradient}
           />
         </View>
-        <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} scrollEnabled={!isAnyDragging}>
+        <ScrollView
+          ref={scrollRef}
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={!isAnyDragging}
+        >
           <View style={styles.headerRow}>
             <BackButton style={styles.backInline} onPress={() => navigation.goBack()} />
             <Title boldText="Split" regularText=" order" style={styles.titleInline} />
@@ -193,15 +230,27 @@ export default function SplitScreen({ navigation }) {
             onScroll={(e) => { peopleScrollXRef.current = e.nativeEvent.contentOffset.x; }}
             scrollEventThrottle={16}
           >
-            {people.map((person, idx) => (
+            {peopleList.map((person, idx) => (
               <PersonCard
-                key={person.id}
+                key={`person-${person.id}-${person.name}`}
                 index={idx}
                 shouldAnimateEntrance={!hasAnimatedOnceRef.current}
                 person={person}
                 assignments={assignments}
                 onDrop={handleDrop}
                 onAddPress={() => setShowAddFriends(true)}
+                onDeleteModeChange={(personId, active) => {
+                  if (active) {
+                    // Only one person can be in delete mode at a time
+                    setActiveDeletePersonId(personId);
+                  } else {
+                    if (activeDeletePersonId === personId) {
+                      setActiveDeletePersonId(null);
+                    }
+                  }
+                }}
+                deleteMode={activeDeletePersonId === person.id}
+                onRemove={handleRemovePerson}
                 // When a drag starts inside a person card
                 onStartDrag={(payload) => {
                   setDraggedFromPerson(payload); // { person, item }
