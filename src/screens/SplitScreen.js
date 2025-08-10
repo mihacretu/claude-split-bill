@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { View, StyleSheet, SafeAreaView, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
@@ -23,50 +23,22 @@ export default function SplitScreen() {
   const [currentPage, setCurrentPage] = useState(0);
   const scrollRef = useRef(null);
 
-  // Swipeable carousel logic
+  // Pagination logic for vertical list
   const itemsPerPage = 4;
   const totalPages = Math.ceil(foodItems.length / itemsPerPage);
-  const screenWidth = Dimensions.get('window').width;
-  const pageWidth = screenWidth - 48; // Account for horizontal padding
-  
-  // Group items into pages of 4
-  const foodPages = [];
-  for (let i = 0; i < totalPages; i++) {
-    const startIndex = i * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    foodPages.push(foodItems.slice(startIndex, endIndex));
-  }
+  const startIndex = currentPage * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentFoodItems = foodItems.slice(startIndex, endIndex);
 
-  const foodScrollRef = useRef(null);
-  
-  const handleScroll = (event) => {
-    const { contentOffset } = event.nativeEvent;
-    const scrollX = contentOffset.x;
-    const newPage = Math.round(scrollX / pageWidth);
-    
-    if (newPage !== currentPage && newPage >= 0 && newPage < totalPages) {
-      setCurrentPage(newPage);
+  const handlePreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
     }
   };
 
-  const handleScrollEnd = (event) => {
-    const { contentOffset } = event.nativeEvent;
-    const scrollX = contentOffset.x;
-    const targetPage = Math.round(scrollX / pageWidth);
-    
-    // Ensure we snap to the correct page
-    if (targetPage !== currentPage && targetPage >= 0 && targetPage < totalPages) {
-      const maxPageJump = 1; // Only allow jumping 1 page at a time
-      const actualTarget = Math.min(Math.max(targetPage, currentPage - maxPageJump), currentPage + maxPageJump);
-      
-      if (actualTarget !== targetPage) {
-        foodScrollRef.current?.scrollTo({
-          x: actualTarget * pageWidth,
-          y: 0,
-          animated: true
-        });
-      }
-      setCurrentPage(actualTarget);
+  const handleNextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1);
     }
   };
 
@@ -138,55 +110,54 @@ export default function SplitScreen() {
             <Text style={styles.hintText}>Drag a dish image onto a person to assign</Text>
           </View>
           
-          <ScrollView
-            ref={foodScrollRef}
-            horizontal
-            pagingEnabled={true}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.carouselContent}
-            style={[styles.carouselContainer, isAnyDragging && styles.foodItemsContainerDragging]}
-            scrollEnabled={!isAnyDragging}
-            onScroll={handleScroll}
-            onMomentumScrollEnd={handleScrollEnd}
-            scrollEventThrottle={16}
-            snapToInterval={pageWidth}
-            decelerationRate="normal"
-            snapToAlignment="center"
-            bounces={false}
-            overScrollMode="never"
-          >
-            {foodPages.map((pageItems, pageIndex) => (
-              <View key={pageIndex} style={[styles.carouselPage, { width: pageWidth }]}>
-                {pageItems.map((item, itemIndex) => (
-                  <DraggableFoodItem 
-                    key={item.id}
-                    item={item}
-                    assignmentInfo={getItemAssignmentInfo(item.id, assignments)}
-                    quantityAssignments={quantityAssignments}
-                    isLastInPage={itemIndex === pageItems.length - 1}
-                    onDraggingChange={(dragging) => {
-                      setIsAnyDragging(dragging);
-                      if (dragging) {
-                        // Dragging from the menu
-                        setDraggedFromPerson(null);
-                      }
-                    }}
-                  />
-                ))}
-              </View>
-            ))}
-          </ScrollView>
-
-          <View style={styles.pageIndicatorContainer}>
-            {Array.from({ length: totalPages }, (_, index) => (
-              <View 
-                key={index}
-                style={[
-                  styles.pageIndicatorDot, 
-                  index === currentPage && styles.pageIndicatorDotActive
-                ]} 
+          <View style={[styles.foodItemsContainer, isAnyDragging && styles.foodItemsContainerDragging]}>
+            {currentFoodItems.map((item) => (
+              <DraggableFoodItem 
+                key={item.id} 
+                item={item}
+                assignmentInfo={getItemAssignmentInfo(item.id, assignments)}
+                quantityAssignments={quantityAssignments}
+                onDraggingChange={(dragging) => {
+                  setIsAnyDragging(dragging);
+                  if (dragging) {
+                    // Dragging from the menu
+                    setDraggedFromPerson(null);
+                  }
+                }}
               />
             ))}
+          </View>
+
+          <View style={styles.paginationControls}>
+            <TouchableOpacity
+              style={[styles.paginationButton, currentPage === 0 && styles.paginationButtonDisabled]}
+              onPress={handlePreviousPage}
+              disabled={currentPage === 0}
+            >
+              <Ionicons 
+                name="chevron-back" 
+                size={20} 
+                color={currentPage === 0 ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
+              />
+            </TouchableOpacity>
+
+            <View style={styles.pageIndicator}>
+              <Text style={styles.pageText}>
+                {currentPage + 1} of {totalPages}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.paginationButton, currentPage === totalPages - 1 && styles.paginationButtonDisabled]}
+              onPress={handleNextPage}
+              disabled={currentPage === totalPages - 1}
+            >
+              <Ionicons 
+                name="chevron-forward" 
+                size={20} 
+                color={currentPage === totalPages - 1 ? Colors.textOnLightSecondary : Colors.textOnLightPrimary} 
+              />
+            </TouchableOpacity>
           </View>
           
           <ScrollView 
@@ -266,14 +237,12 @@ const styles = StyleSheet.create({
   // removed layered overlays to ensure a consistent full-height gradient
   scroll: {
     flex: 1,
-    overflow: 'visible',
   },
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 12,
     paddingBottom: 24,
     flexGrow: 1,
-    overflow: 'visible',
   },
   headerRow: {
     flexDirection: 'row',
@@ -288,31 +257,15 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     fontSize: 36,
   },
-  // Swipeable carousel styles
-  carouselContainer: {
+  // Food items container (back to original vertical layout)
+  foodItemsContainer: {
+    marginBottom: 20,
     position: 'relative',
-    zIndex: 2,
-    flexGrow: 0,
-    overflow: 'visible',
-  },
-  carouselContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 0,
-    flexGrow: 0,
-    overflow: 'visible',
-  },
-  carouselPage: {
-    paddingHorizontal: 0,
+    zIndex: 1,
   },
   foodItemsContainerDragging: {
     zIndex: 9998,
     elevation: 40,
-  },
-  peopleScrollView: {
-    flexGrow: 0,
-    position: 'relative',
-    zIndex: 0,
-    elevation: 0,
   },
   hintRow: {
     flexDirection: 'row',
@@ -339,34 +292,56 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     position: 'relative',
     zIndex: 0,
-    elevation: 0,
   },
   peopleScrollView: {
     flexGrow: 0,
     position: 'relative',
     zIndex: 0,
-    elevation: 0,
   },
-  pageIndicatorContainer: {
+  paginationControls: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 30,
+    paddingHorizontal: 20,
+  },
+  paginationButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 25,
-    zIndex: 0,
-    elevation: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  pageIndicatorDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.textOnLightSecondary,
-    marginHorizontal: 4,
-    opacity: 0.3,
+  paginationButtonDisabled: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: 'rgba(255,255,255,0.08)',
+    opacity: 0.5,
   },
-  pageIndicatorDotActive: {
-    backgroundColor: Colors.accentBlue,
-    opacity: 1,
-    transform: [{ scale: 1.2 }],
+  pageIndicator: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  pageText: {
+    color: Colors.textOnLightPrimary,
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
