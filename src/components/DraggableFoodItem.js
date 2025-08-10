@@ -108,7 +108,10 @@ const styles = StyleSheet.create({
   foodImage: {
     width: 52,
     height: 52,
-    borderRadius: 10,
+    // Match the visual rounding of the dashed border on the wrapper.
+    // Wrapper has borderRadius: 10 with padding: 2, so inner image
+    // radius should be wrapperRadius - padding to align the arc.
+    borderRadius: 8,
     overflow: 'hidden',
   },
   quantity: {
@@ -152,7 +155,7 @@ const styles = StyleSheet.create({
   },
   foodItemAssigned: {
     backgroundColor: '#F0F6F2',
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#D5E4D8',
     borderLeftWidth: 3,
@@ -160,7 +163,7 @@ const styles = StyleSheet.create({
   },
   foodItemShared: {
     backgroundColor: '#FFF7E2',
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#F7D5A6',
     borderLeftWidth: 3,
