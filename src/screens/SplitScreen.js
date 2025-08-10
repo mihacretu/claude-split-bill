@@ -212,6 +212,7 @@ export default function SplitScreen({ navigation }) {
           </View>
 
           <SwapBarPager
+            key={`swapbar-${totalPages}`}
             currentPage={currentPage}
             totalPages={totalPages}
             onPrev={handlePreviousPage}

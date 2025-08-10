@@ -138,6 +138,7 @@ export default function ChooseYoursScreen({ navigation }) {
           </View>
 
           <SwapBarPager
+            key={`swapbar-${totalPages}`}
             currentPage={currentPage}
             totalPages={totalPages}
             onPrev={handlePreviousPage}
