@@ -29,6 +29,7 @@ export const Colors = {
   accentBlueSoft: 'rgba(79, 209, 197, 0.16)',
   currentUser: '#8b5cf6',
   shared: '#4FD1C5',
+  sharedOrange: '#F08430',
 
   // Specific accent for dotted image borders (preserve green)
   dottedGreen: '#305349',
