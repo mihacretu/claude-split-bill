@@ -23,6 +23,7 @@
     "react-native-gesture-handler": "^2.28.0",
     "react-native-reanimated": "^3.19.0",
     "react-native-reanimated-dnd": "^1.1.0",
+    "react-native-timeline-flatlist": "^0.8.0",
     "react-native-web": "^0.20.0"
   },
   "devDependencies": {

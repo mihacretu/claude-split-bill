@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { TestNavigationScreen, SplitScreen, ChooseYoursScreen } from './src/screens';
+import { TestNavigationScreen, SplitScreen, ChooseYoursScreen, HomeScreen } from './src/screens';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('TestNavigation');
+  const [currentScreen, setCurrentScreen] = useState('HomeScreen');
 
   // Simple navigation object
   const navigation = {
@@ -14,6 +14,8 @@ export default function App() {
 
   const renderCurrentScreen = () => {
     switch (currentScreen) {
+      case 'HomeScreen':
+        return <HomeScreen navigation={navigation} />;
       case 'SplitScreen':
         return <SplitScreen navigation={navigation} />;
       case 'ChooseYoursScreen':
@@ -24,7 +26,7 @@ export default function App() {
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#F2F4F7' }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: 'transparent', overflow: 'hidden' }}>
       {renderCurrentScreen()}
       <StatusBar style="auto" />
     </GestureHandlerRootView>
