@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blips - Mood Board & Design System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f3f5;
+            line-height: 1.6;
+            color: #2d3748;
+        }
+        
+        .mood-board {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .main-logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8, #0891b2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+        
+        /* COLOR PALETTE */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .color-item {
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .color-primary { background: linear-gradient(135deg, #38bdf8, #0891b2); }
+        .color-background { background: #f1f3f5; color: #64748b; border: 2px solid #e5e7eb; }
+        .color-success { background: linear-gradient(135deg, #10b981, #059669); }
+        .color-accent { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        
+        .color-code {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        /* ICONS */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        
+        .icon-item {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .icon-item:hover {
+            background: linear-gradient(135deg, #38bdf8, #0891b2);
+            color: white;
+            transform: translateY(-2px);
+            border-color: transparent;
+        }
+        
+        .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .icon-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        /* TYPOGRAPHY */
+        .typography-sample {
+            margin: 15px 0;
+        }
+        
+        .font-display {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8, #0891b2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .font-heading {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 10px 0;
+        }
+        
+        .font-body {
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 400;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        
+        .font-caption {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6b7280;
+        }
+        
+        /* UI ELEMENTS */
+        .ui-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .button {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #38bdf8, #0891b2);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 5px;
+        }
+        
+        .badge-sync {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-overdue {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        /* SOUND WAVE ANIMATIONS */
+        .sound-wave {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            margin: 20px 0;
+        }
+        
+        .wave-bar {
+            width: 4px;
+            background: linear-gradient(135deg, #38bdf8, #0891b2);
+            border-radius: 2px;
+            animation: wave 1.5s infinite ease-in-out;
+        }
+        
+        .wave-bar:nth-child(1) { height: 20px; animation-delay: 0s; }
+        .wave-bar:nth-child(2) { height: 35px; animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { height: 15px; animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { height: 40px; animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { height: 25px; animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { height: 30px; animation-delay: 0.5s; }
+        .wave-bar:nth-child(7) { height: 20px; animation-delay: 0.6s; }
+        
+        @keyframes wave {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.3); }
+        }
+        
+        /* CARD EXAMPLES */
+        .ui-card-example {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            margin: 15px 0;
+        }
+        
+        .notification-badge {
+            background: #f59e0b;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .person-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+        
+        .person-card.selected {
+            border-color: #38bdf8;
+        }
+        
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #38bdf8, #0891b2);
+            margin: 0 auto 10px;
+        }
+        
+        /* VISUAL STYLE */
+        .visual-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .visual-item {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gradient-1 {
+            background: linear-gradient(135deg, #38bdf8, #0891b2);
+        }
+        
+        .gradient-2 {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .gradient-3 {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .card-style {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #4b5563;
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-logo {
+                font-size: 3rem;
+            }
+            
+            .icon-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mood-board">
+        <div class="header">
+            <div class="main-logo">blips</div>
+            <div class="tagline">Get everyone in sync</div>
+        </div>
+        
+        <div class="grid">
+            <!-- COLOR PALETTE -->
+            <div class="card">
+                <h3 class="card-title">🎨 Your Color Palette</h3>
+                <div class="color-grid">
+                    <div class="color-item color-primary">
+                        Primary Teal
+                        <div class="color-code">#38bdf8</div>
+                    </div>
+                    <div class="color-item color-background">
+                        Background Gray
+                        <div class="color-code">#f1f3f5</div>
+                    </div>
+                    <div class="color-item color-success">
+                        Success Green
+                        <div class="color-code">#10b981</div>
+                    </div>
+                    <div class="color-item color-accent">
+                        Accent Orange
+                        <div class="color-code">#f59e0b</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TYPOGRAPHY -->
+            <div class="card">
+                <h3 class="card-title">✏️ Typography</h3>
+                <div class="typography-sample">
+                    <div class="font-display">blips</div>
+                    <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 15px;">Poppins Bold - Logo & Display</div>
+                    
+                    <div class="font-heading">Start a Track</div>
+                    <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 15px;">Poppins SemiBold - Headings</div>
+                    
+                    <div class="font-body">Your dinner track is ready! Invite your friends and start splitting bills like a pro.</div>
+                    <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 15px;">Inter Regular - Body Text</div>
+                    
+                    <div class="font-caption">In Sync • 4 payments complete</div>
+                    <div style="font-size: 0.8rem; color: #6b7280;">Inter Medium - Captions</div>
+                </div>
+            </div>
+            
+            <!-- ICONS & SYMBOLS -->
+            <div class="card">
+                <h3 class="card-title">🎵 Icons & Symbols</h3>
+                <div class="icon-grid">
+                    <div class="icon-item">
+                        <div class="icon">🎵</div>
+                        <div class="icon-label">Tracks</div>
+                    </div>
+                    <div class="icon-item">
+                        <div class="icon">📱</div>
+                        <div class="icon-label">Scan</div>
+                    </div>
+                    <div class="icon-item">
+                        <div class="icon">⚡</div>
+                        <div class="icon-label">Quick Split</div>
+                    </div>
+                    <div class="icon-item">
+                        <div class="icon">🎶</div>
+                        <div class="icon-label">Beats</div>
+                    </div>
+                    <div class="icon-item">
+                        <div class="icon">👥</div>
+                        <div class="icon-label">Band</div>
+                    </div>
+                    <div class="icon-item">
+                        <div class="icon">🎤</div>
+                        <div class="icon-label">Solo</div>
+                    </div>
+                    <div class="icon-item">
+                        <div class="icon">🎧</div>
+                        <div class="icon-label">Sync</div>
+                    </div>
+                    <div class="icon-item">
+                        <div class="icon">🔄</div>
+                        <div class="icon-label">Replay</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SOUND WAVE ANIMATION -->
+            <div class="card">
+                <h3 class="card-title">🌊 Sound Wave Loading</h3>
+                <div class="sound-wave">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                </div>
+                <p style="text-align: center; color: #6b7280; font-size: 0.9rem;">Animated loading states with musical rhythm</p>
+            </div>
+            
+            <!-- UI ELEMENTS -->
+            <div class="card">
+                <h3 class="card-title">🎛️ UI Elements</h3>
+                <div class="ui-grid">
+                    <button class="button btn-primary">Hit Record</button>
+                    <button class="button btn-secondary">Join Beat</button>
+                    <button class="button btn-success">Get in Sync</button>
+                    <button class="button btn-secondary">Remix Split</button>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <span class="status-badge badge-sync">🟢 In Sync</span>
+                    <span class="status-badge badge-pending">🟡 Off Beat</span>
+                    <span class="status-badge badge-overdue">🔴 Out of Tune</span>
+                </div>
+                
+                <div class="ui-card-example">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span>Orange Juice</span>
+                        <span class="notification-badge">1</span>
+                        <span style="margin-left: auto; font-weight: 600;">$8.00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CARD STYLES -->
+            <div class="card">
+                <h3 class="card-title">📱 Card Styles</h3>
+                <div class="visual-grid">
+                    <div class="visual-item gradient-1">
+                        Primary<br/>Teal
+                    </div>
+                    <div class="visual-item gradient-2">
+                        Success<br/>Green
+                    </div>
+                    <div class="visual-item gradient-3">
+                        Accent<br/>Orange
+                    </div>
+                </div>
+                
+                <div class="person-card" style="margin-top: 15px;">
+                    <div class="avatar"></div>
+                    <div style="font-weight: 600; color: #1f2937;">Jessica</div>
+                    <div style="font-size: 1.2rem; font-weight: 700; color: #38bdf8;">$6.67</div>
+                </div>
+                
+                <div class="person-card selected" style="margin-top: 10px;">
+                    <div style="font-size: 0.85rem; color: #38bdf8; font-weight: 600;">Selected state with teal border</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- BRAND APPLICATIONS -->
+        <div class="card" style="margin-top: 30px;">
+            <h3 class="card-title">🚀 Your Brand in Action</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div>
+                    <strong>🎯 Key Messaging:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px; color: #6b7280;">
+                        <li>"While others split bills, we sync lives"</li>
+                        <li>"Turn awkward money moments into smooth experiences"</li>
+                        <li>"Clean, simple bill splitting that just works"</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>🎨 Visual Principles:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px; color: #6b7280;">
+                        <li>Clean gray backgrounds with white cards</li>
+                        <li>Teal blue for primary actions & selections</li>
+                        <li>Orange badges for notifications & assignments</li>
+                        <li>Subtle shadows and rounded corners</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>🎵 Voice & Tone:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px; color: #6b7280;">
+                        <li>Clean & professional like your UI</li>
+                        <li>Efficient and straightforward</li>
+                        <li>Modern but not overwhelming</li>
+                        <li>Friendly conductor energy</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
