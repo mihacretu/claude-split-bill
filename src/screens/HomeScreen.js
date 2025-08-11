@@ -15,8 +15,13 @@ import Colors from '../theme/colors';
 const HEADER_EXPANDED_HEIGHT = 132;
 const HEADER_COLLAPSED_HEIGHT = 72;
 const FAB_SIZE = 64;
+// Timeline alignment constants
+const TIMELINE_TITLE_LINE_HEIGHT = 18;
+const TIMELINE_CIRCLE_SIZE = 10;
+const TIMELINE_CARD_PADDING_TOP = 6; // matches styles.card paddingVertical top
+const TIMELINE_CIRCLE_TOP = TIMELINE_CARD_PADDING_TOP + (TIMELINE_TITLE_LINE_HEIGHT - TIMELINE_CIRCLE_SIZE) / 2;
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
   const scrollY = useSharedValue(0);
   const [titleWidth, setTitleWidth] = useState(0);
   const screenWidth = Dimensions.get('window').width;
@@ -235,9 +240,8 @@ export default function HomeScreen() {
         <View style={styles.cardHeader}>
           <Ionicons name="location" size={16} color={Colors.textOnLightPrimary} style={{ marginRight: 6 }} />
           <Text style={styles.cardTitle}>{rowData.title}</Text>
-          <View style={{ flex: 1 }} />
-          {rowData.icon}
         </View>
+        {rowData.icon}
         <Text style={styles.cardSubtitle}>{rowData.description}</Text>
       </View>
     );
@@ -249,20 +253,20 @@ export default function HomeScreen() {
         <LinearGradient
           colors={[Colors.backgroundTop, Colors.backgroundMid, Colors.backgroundBottom]}
           locations={[0, 0.6, 1]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
           style={styles.bgGradient}
         />
       </View>
 
       <Animated.View style={[styles.header, headerAnimatedStyle]}>
-        {/* Header background gradient to match the page */}
+        {/* Opaque header background to prevent timeline showing through */}
         <LinearGradient
           pointerEvents="none"
           colors={[Colors.backgroundTop, Colors.backgroundMid, Colors.backgroundBottom]}
           locations={[0, 0.6, 1]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
         <View style={styles.topIconsRow}>
@@ -273,13 +277,18 @@ export default function HomeScreen() {
           <Text style={styles.title} onLayout={(e) => setTitleWidth(e.nativeEvent.layout.width)}>Hangouts</Text>
           <Animated.View style={[styles.titleUnderline, underlineAnimatedStyle]} />
         </Animated.View>
-        {/* Overlay to prevent timeline peeking under the header/title during collapse */}
+        {/* Subtle top fade to mask any seam between header and timeline */}
         <LinearGradient
           pointerEvents="none"
-          colors={['rgba(244,246,250,1)', 'rgba(244,246,250,0)']}
+          colors={[
+            'rgba(244,246,250,1)',
+            'rgba(244,246,250,0.6)',
+            'rgba(244,246,250,0)'
+          ]}
+          locations={[0, 0.5, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
-          style={{ position: 'absolute', left: 0, right: 0, bottom: -16, height: 24 }}
+          style={{ position: 'absolute', left: 0, right: 0, bottom: -24, height: 32 }}
         />
       </Animated.View>
 
@@ -291,12 +300,16 @@ export default function HomeScreen() {
         <View style={styles.timelineContainer}>
           <Timeline
             data={data}
-            circleSize={0}
+            circleSize={TIMELINE_CIRCLE_SIZE}
             showTime
             timeStyle={styles.timeLabel}
             timeContainerStyle={styles.timeContainer}
             lineColor={Colors.personCardStroke}
-            innerCircle={''}
+            circleColor={Colors.personCardStroke}
+            dotColor={Colors.personCardStroke}
+            innerCircle={'dot'}
+            circleStyle={styles.circleAlign}
+            eventDetailStyle={{ paddingTop: 0, paddingBottom: 6 }}
             renderDetail={renderDetail}
             options={{ showsVerticalScrollIndicator: false }}
             isUsingFlatlist={false}
@@ -305,15 +318,6 @@ export default function HomeScreen() {
       </Animated.ScrollView>
 
       <View style={styles.bottomNav}>
-        {/* Bottom area background gradient to match the page */}
-        <LinearGradient
-          pointerEvents="none"
-          colors={[Colors.backgroundTop, Colors.backgroundMid, Colors.backgroundBottom]}
-          locations={[0, 0.6, 1]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={StyleSheet.absoluteFill}
-        />
         <View style={styles.bottomBar}>
           <View style={styles.menuRow}>
             <TouchableOpacity activeOpacity={0.7} style={styles.menuItem}>
@@ -322,6 +326,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <View style={styles.centerSpacer} />
             <TouchableOpacity activeOpacity={0.7} style={styles.menuItem}>
+              <View style={styles.activeIndicatorSpacer} />
               <Ionicons name="people-outline" size={24} color={Colors.textOnLightPrimary} />
             </TouchableOpacity>
           </View>
@@ -329,14 +334,20 @@ export default function HomeScreen() {
         {/* Bottom fade mask to prevent timeline peeking behind the nav bar */}
         <LinearGradient
           pointerEvents="none"
-          colors={['rgba(244,246,250,0)', 'rgba(244,246,250,1)']}
+          colors={['transparent', Colors.backgroundMid]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={{ position: 'absolute', left: 0, right: 0, top: -18, height: 24 }}
         />
-        <View style={styles.fab}>
+        <TouchableOpacity
+          style={styles.fab}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Scan"
+          onPress={() => navigation?.navigate?.('TestNavigation')}
+        >
           <Ionicons name="scan" size={26} color={Colors.textOnLightPrimary} />
-        </View>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -368,8 +379,8 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 10,
     paddingHorizontal: 20,
-    backgroundColor: Colors.backgroundMid,
-    // Add a subtle gradient fade to mask content underneath the floating header
+    backgroundColor: 'transparent',
+    paddingBottom: 8,
   },
   topIconsRow: {
     paddingTop: 10,
@@ -388,10 +399,10 @@ const styles = StyleSheet.create({
     color: Colors.textOnLightPrimary,
   },
   titleUnderline: {
-    marginTop: 4,
+    marginTop: 6,
     height: 6,
     width: 84,
-    backgroundColor: Colors.shared,
+    backgroundColor: Colors.accentBlue,
     borderRadius: 3,
   },
   timelineContainer: {
@@ -399,26 +410,33 @@ const styles = StyleSheet.create({
   },
   timeContainer: {
     minWidth: 54,
-    alignItems: 'flex-start',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    marginTop: TIMELINE_CARD_PADDING_TOP,
+    height: TIMELINE_TITLE_LINE_HEIGHT,
+  },
+  circleAlign: {
+    top: TIMELINE_CIRCLE_TOP,
   },
   timeLabel: {
     color: Colors.textOnLightSecondary,
     fontSize: 12,
+    textAlign: 'right',
+    lineHeight: TIMELINE_TITLE_LINE_HEIGHT,
   },
   card: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.personCardStroke,
-    padding: 14,
-    backgroundColor: Colors.cardTop,
+    paddingVertical: 6,
+    paddingHorizontal: 0,
+    backgroundColor: 'transparent',
+    marginBottom: 30,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: Colors.textOnLightPrimary,
   },
@@ -430,6 +448,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginBottom: 6,
   },
   avatar: {
     width: 22,
@@ -455,7 +474,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.personCardOutline,
     backgroundColor: Colors.cardTop,
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 6,
     justifyContent: 'center',
     zIndex: 0,
   },
@@ -467,16 +486,27 @@ const styles = StyleSheet.create({
   menuItem: {
     width: 68,
     alignItems: 'center',
-    paddingTop: 2,
+    justifyContent: 'center',
+    paddingTop: 0,
+    height: 56,
+    position: 'relative',
   },
   activeIndicator: {
-    width: 44,
+    width: 28,
     height: 6,
-    backgroundColor: Colors.shared,
+    backgroundColor: Colors.accentBlue,
     borderRadius: 3,
-    alignSelf: 'flex-start',
-    marginBottom: 10,
-    marginLeft: 6,
+    position: 'absolute',
+    top: 4,
+    alignSelf: 'center',
+  },
+  activeIndicatorSpacer: {
+    width: 28,
+    height: 6,
+    backgroundColor: 'transparent',
+    position: 'absolute',
+    top: 4,
+    alignSelf: 'center',
   },
   centerSpacer: {
     width: FAB_SIZE + 20,
@@ -489,7 +519,7 @@ const styles = StyleSheet.create({
     borderRadius: FAB_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.shared,
+    backgroundColor: Colors.accentBlue,
     elevation: 5,
     shadowColor: '#000',
     shadowOpacity: 0.15,

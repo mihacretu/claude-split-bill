@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F7D5A6',
     borderLeftWidth: 3,
-    borderLeftColor: Colors.shared,
+    borderLeftColor: Colors.accentBlue,
   },
   draggableImageContainer: {
     zIndex: 100,
