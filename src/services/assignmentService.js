@@ -26,6 +26,50 @@ export const handleItemDrop = (
     return { shouldUpdate: false };
   }
 
+  // If draggedItem has a `person` property, it is being dragged from a person card → reassign
+  if (draggedItem.person) {
+    const sourcePerson = draggedItem.person;
+    if (!sourcePerson || sourcePerson.id === targetPerson.id) {
+      return { shouldUpdate: false };
+    }
+
+    const sourceItems = assignments[sourcePerson.id] || [];
+    const targetItems = assignments[targetPerson.id] || [];
+    const withoutFromSource = sourceItems.filter(i => i.id !== draggedItem.item.id);
+    const alreadyOnTarget = targetItems.some(i => i.id === draggedItem.item.id);
+
+    // If target already has the item, cancel move (avoid duplicates)
+    if (alreadyOnTarget) {
+      // Still need to ensure source keeps the item if we canceled
+      return { shouldUpdate: false };
+    }
+
+    const movedItem = draggedItem.item;
+    const newAssignments = {
+      ...assignments,
+      [sourcePerson.id]: withoutFromSource,
+      [targetPerson.id]: [...targetItems, movedItem]
+    };
+
+    // Move quantity assignment if it exists
+    let newQuantityAssignments = quantityAssignments;
+    const sourceQuantities = quantityAssignments[movedItem.id] || {};
+    const qtyForSource = sourceQuantities[sourcePerson.id];
+    if (typeof qtyForSource === 'number') {
+      newQuantityAssignments = {
+        ...quantityAssignments,
+        [movedItem.id]: {
+          ...sourceQuantities,
+          [targetPerson.id]: (sourceQuantities[targetPerson.id] || 0) + qtyForSource,
+          [sourcePerson.id]: undefined,
+        }
+      };
+    }
+
+    console.log('🔁 Reassigned', movedItem.name, 'from', sourcePerson.name, 'to', targetPerson.name);
+    return { shouldUpdate: true, newAssignments, newQuantityAssignments };
+  }
+
   const currentAssignments = assignments[targetPerson.id] || [];
   const alreadyHasItem = currentAssignments.some(item => item.id === draggedItem.id);
   
@@ -72,10 +116,14 @@ export const handleQuantityAssignment = (
   if (!pendingAssignment) return { shouldUpdate: false };
 
   const { item, person } = pendingAssignment;
-  
+  // Ensure the item appears only once in a person's assigned list
+  const current = assignments[person.id] || [];
+  const alreadyHas = current.some((i) => i.id === item.id);
+  const nextItems = alreadyHas ? current : [...current, item];
+
   const newAssignments = {
     ...assignments,
-    [person.id]: [...(assignments[person.id] || []), item]
+    [person.id]: nextItems
   };
   
   const newQuantityAssignments = {
@@ -92,5 +140,47 @@ export const handleQuantityAssignment = (
     shouldUpdate: true,
     newAssignments,
     newQuantityAssignments
+  };
+};
+
+export const unassignItemFromPerson = (person, item, assignments, quantityAssignments) => {
+  if (!person || !item) return { shouldUpdate: false };
+
+  const personItems = assignments[person.id] || [];
+  const updatedItems = personItems.filter(i => i.id !== item.id);
+
+  const { [person.id]: _, ...restQuantitiesForItem } = (quantityAssignments[item.id] || {});
+  const newQuantityAssignments = {
+    ...quantityAssignments,
+    [item.id]: restQuantitiesForItem,
+  };
+
+  return {
+    shouldUpdate: true,
+    newAssignments: { ...assignments, [person.id]: updatedItems },
+    newQuantityAssignments,
+  };
+};
+
+export const removePersonAndUnassign = (person, assignments, quantityAssignments) => {
+  if (!person) return { shouldUpdate: false };
+
+  const newAssignments = { ...assignments };
+  delete newAssignments[person.id];
+
+  const newQuantityAssignments = {};
+  for (const [itemId, perPersonQty] of Object.entries(quantityAssignments)) {
+    const { [person.id]: _removed, ...rest } = perPersonQty || {};
+    // Only keep entry if there are remaining quantities
+    const hasAny = Object.values(rest).some((q) => typeof q === 'number' && q > 0);
+    if (hasAny) {
+      newQuantityAssignments[itemId] = rest;
+    }
+  }
+
+  return {
+    shouldUpdate: true,
+    newAssignments,
+    newQuantityAssignments,
   };
 };

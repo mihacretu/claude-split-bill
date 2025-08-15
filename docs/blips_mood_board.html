@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Bill App - Design System Mood Board</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #FBFCFE 0%, #F4F6FA 60%, #ECEFF5 100%);
+            min-height: 100vh;
+            color: #1C2120;
+            line-height: 1.6;
+        }
+
+        .mood-board {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 32px;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1C2120, #4FD1C5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: #667085;
+            font-weight: 500;
+            margin-bottom: 32px;
+        }
+
+        .design-principles {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        }
+
+        .section h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1C2120;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        /* Color Palette */
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+
+        .color-group {
+            margin-bottom: 32px;
+        }
+
+        .color-group h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1C2120;
+        }
+
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .color-swatch {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .color-info {
+            flex: 1;
+        }
+
+        .color-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1C2120;
+            margin-bottom: 2px;
+        }
+
+        .color-value {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #667085;
+        }
+
+        /* Typography */
+        .typography-sample {
+            margin-bottom: 24px;
+            padding: 24px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .type-display {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #1C2120;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        .type-heading {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1C2120;
+            margin-bottom: 8px;
+        }
+
+        .type-subheading {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1C2120;
+            margin-bottom: 8px;
+        }
+
+        .type-body {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #667085;
+            margin-bottom: 8px;
+        }
+
+        .type-small {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #667085;
+        }
+
+        /* Components */
+        .component-preview {
+            margin-bottom: 24px;
+        }
+
+        .card-example {
+            background: linear-gradient(135deg, #F5F6F7 0%, #E9EAEE 60%, #DADCE2 100%);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid #B7BEC9;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 16px;
+            max-width: 200px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 24px;
+            background: #4FD1C5;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .button-examples {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #4FD1C5;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #1C2120;
+            border: 1px solid rgba(79, 209, 197, 0.3);
+        }
+        
+        .btn-accent {
+            background: white;
+            color: #1C2120;
+            border: 1px solid rgba(240, 132, 48, 0.3);
+        }
+
+
+        .spacing-example {
+            background: rgba(79, 209, 197, 0.1);
+            border: 2px dashed #4FD1C5;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .spacing-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #667085;
+        }
+
+        .spacing-item {
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 4px;
+            font-family: 'Monaco', monospace;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .glass-strong {
+            background: rgba(255, 255, 255, 0.10);
+        }
+
+        /* Sound Wave Animation */
+        @keyframes wave {
+            0%, 100% { 
+                transform: scaleY(1); 
+            }
+            50% { 
+                transform: scaleY(0.3); 
+            }
+        }
+
+        .visual-hierarchy {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .hierarchy-item {
+            text-align: center;
+            padding: 24px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .size-48 { font-size: 3rem; font-weight: 800; }
+        .size-36 { font-size: 2.25rem; font-weight: 700; }
+        .size-24 { font-size: 1.5rem; font-weight: 600; }
+        .size-18 { font-size: 1.125rem; font-weight: 600; }
+        .size-16 { font-size: 1rem; font-weight: 500; }
+        .size-14 { font-size: 0.875rem; font-weight: 500; }
+        .size-12 { font-size: 0.75rem; font-weight: 500; }
+
+        .principle-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .principle-list li {
+            margin-bottom: 12px;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .principle-list li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: #4FD1C5;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="mood-board">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="hero-title">Split Bill App</h1>
+            <p class="hero-subtitle">Design System & Visual Identity</p>
+            <div class="design-principles">
+                <h3 style="margin-bottom: 16px; font-size: 1.5rem; font-weight: 600;">Design Principles</h3>
+                <ul class="principle-list">
+                    <li><strong>Glass Morphism:</strong> Translucent surfaces with subtle blur effects create depth and modern appeal</li>
+                    <li><strong>Soft Gradients:</strong> Gentle metallic gray gradients provide elegant backgrounds without overwhelming content</li>
+                    <li><strong>Subtle Depth:</strong> Layered shadows and borders create visual hierarchy while maintaining cleanliness</li>
+                    <li><strong>Musical Theme:</strong> Transform boring bill-splitting terms into fun musical language (Groups → Tracks, Scan → Hit Record)</li>
+                    <li><strong>Friendly Interaction:</strong> Warm accent colors and smooth animations make the app approachable</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Main Grid -->
+        <div class="grid">
+            <!-- Color Palette Section -->
+            <section class="section">
+                <h2>
+                    <div class="icon" style="background: linear-gradient(135deg, #4FD1C5, #8b5cf6);">🎨</div>
+                    Color Palette
+                </h2>
+                
+                <div class="color-group">
+                    <h3>Background Gradients</h3>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: #FBFCFE;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Background Top</div>
+                            <div class="color-value">#FBFCFE</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: #F4F6FA;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Background Mid</div>
+                            <div class="color-value">#F4F6FA</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: #ECEFF5;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Background Bottom</div>
+                            <div class="color-value">#ECEFF5</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="color-group">
+                    <h3>Accent Colors</h3>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: #4FD1C5;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Accent Blue</div>
+                            <div class="color-value">#4FD1C5</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: #8b5cf6;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Current User</div>
+                            <div class="color-value">#8b5cf6</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: #F08430;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Shared Items</div>
+                            <div class="color-value">#F08430</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="color-group">
+                    <h3>Text Colors</h3>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: #1C2120;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Primary Text</div>
+                            <div class="color-value">#1C2120</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: #667085;"></div>
+                        <div class="color-info">
+                            <div class="color-name">Secondary Text</div>
+                            <div class="color-value">#667085</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Typography Section -->
+            <section class="section">
+                <h2>
+                    <div class="icon" style="background: linear-gradient(135deg, #1C2120, #667085); color: white;">Aa</div>
+                    Typography
+                </h2>
+                
+                <div class="typography-sample">
+                    <div class="type-display">Display</div>
+                    <div style="font-size: 0.9rem; color: #667085; margin-bottom: 16px;">48px • Inter • 800 weight</div>
+                    
+                    <div class="type-heading">Heading</div>
+                    <div style="font-size: 0.9rem; color: #667085; margin-bottom: 16px;">32px • Inter • 700 weight</div>
+                    
+                    <div class="type-subheading">Subheading</div>
+                    <div style="font-size: 0.9rem; color: #667085; margin-bottom: 16px;">20px • Inter • 600 weight</div>
+                    
+                    <div class="type-body">Body text for general content and descriptions</div>
+                    <div style="font-size: 0.9rem; color: #667085; margin-bottom: 16px;">16px • Inter • 400 weight</div>
+                    
+                    <div class="type-small">Small text for captions and labels</div>
+                    <div style="font-size: 0.9rem; color: #667085;">14px • Inter • 500 weight</div>
+                </div>
+
+                <div style="background: rgba(79, 209, 197, 0.1); padding: 16px; border-radius: 8px;">
+                    <strong>Font Stack:</strong> Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
+                </div>
+            </section>
+
+            <!-- Component Examples -->
+            <section class="section">
+                <h2>
+                    <div class="icon" style="background: linear-gradient(135deg, #F5F6F7, #DADCE2);">📦</div>
+                    Components
+                </h2>
+                
+                <div class="component-preview">
+                    <h3 style="margin-bottom: 16px; color: #1C2120;">Person Cards</h3>
+                    <div class="card-example">
+                        <div class="avatar">MH</div>
+                        <div style="font-weight: 600; font-size: 14px; color: #1C2120; margin-bottom: 2px;">Mihaela</div>
+                        <div style="font-weight: bold; font-size: 16px; color: #1C2120;">$24.50</div>
+                    </div>
+                </div>
+
+                <div class="component-preview">
+                    <h3 style="margin-bottom: 16px; color: #1C2120;">Buttons</h3>
+                    <div class="button-examples">
+                        <button class="btn btn-primary">Primary</button>
+                        <button class="btn btn-secondary">Secondary</button>
+                        <button class="btn btn-accent">Accent</button>
+                    </div>
+                </div>
+
+                <div class="component-preview">
+                    <h3 style="margin-bottom: 16px; color: #1C2120;">Glass Effects</h3>
+                    <div class="glass-effect">
+                        <div style="color: #1C2120; font-weight: 500;">Surface Glass</div>
+                        <div style="color: #667085; font-size: 14px;">rgba(255,255,255,0.06)</div>
+                    </div>
+                    <div class="glass-effect glass-strong">
+                        <div style="color: #1C2120; font-weight: 500;">Strong Glass</div>
+                        <div style="color: #667085; font-size: 14px;">rgba(255,255,255,0.10)</div>
+                    </div>
+                </div>
+
+                <div class="component-preview">
+                    <h4 style="margin: 24px 0 16px; color: #1C2120;">Status Badges</h4>
+                    <div style="margin-bottom: 16px;">
+                        <span style="display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; margin: 5px; background: rgba(79, 209, 197, 0.1); color: #1C2120; border: 1px solid rgba(79, 209, 197, 0.3);">🎧 In Sync</span>
+                        <span style="display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; margin: 5px; background: rgba(240, 132, 48, 0.1); color: #1C2120; border: 1px solid rgba(240, 132, 48, 0.3);">🎵 Off Beat</span>
+                        <span style="display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; margin: 5px; background: rgba(139, 92, 246, 0.1); color: #1C2120; border: 1px solid rgba(139, 92, 246, 0.3);">🎤 You</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Spacing System -->
+            <section class="section">
+                <h2>
+                    <div class="icon" style="background: linear-gradient(135deg, #4FD1C5, rgba(79, 209, 197, 0.3)); color: white;">📐</div>
+                    Spacing & Layout
+                </h2>
+                
+                <div class="spacing-example">
+                    <h4 style="margin-bottom: 12px; color: #1C2120;">Standard Spacing Scale</h4>
+                    <div class="spacing-grid">
+                        <div class="spacing-item">4px</div>
+                        <div class="spacing-item">8px</div>
+                        <div class="spacing-item">12px</div>
+                        <div class="spacing-item">16px</div>
+                        <div class="spacing-item">20px</div>
+                        <div class="spacing-item">24px</div>
+                        <div class="spacing-item">32px</div>
+                        <div class="spacing-item">40px</div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.4); padding: 16px; border-radius: 8px;">
+                    <h4 style="margin-bottom: 8px; color: #1C2120;">Border Radius Scale</h4>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <div style="background: #4FD1C5; width: 40px; height: 40px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">6px</div>
+                        <div style="background: #4FD1C5; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">12px</div>
+                        <div style="background: #4FD1C5; width: 40px; height: 40px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">16px</div>
+                        <div style="background: #4FD1C5; width: 40px; height: 40px; border-radius: 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">24px</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Visual Hierarchy -->
+            <section class="section">
+                <h2>
+                    <div class="icon" style="background: linear-gradient(135deg, #1C2120, #4FD1C5); color: white;">⚡</div>
+                    Visual Hierarchy
+                </h2>
+                
+                <div class="visual-hierarchy">
+                    <div class="hierarchy-item">
+                        <div class="size-48" style="color: #1C2120;">48</div>
+                        <div style="font-size: 12px; color: #667085;">Display • 800</div>
+                    </div>
+                    <div class="hierarchy-item">
+                        <div class="size-36" style="color: #1C2120;">36</div>
+                        <div style="font-size: 12px; color: #667085;">Title • 700</div>
+                    </div>
+                    <div class="hierarchy-item">
+                        <div class="size-24" style="color: #1C2120;">24</div>
+                        <div style="font-size: 12px; color: #667085;">Heading • 600</div>
+                    </div>
+                    <div class="hierarchy-item">
+                        <div class="size-18" style="color: #1C2120;">18</div>
+                        <div style="font-size: 12px; color: #667085;">Subheading • 600</div>
+                    </div>
+                    <div class="hierarchy-item">
+                        <div class="size-16" style="color: #667085;">16</div>
+                        <div style="font-size: 12px; color: #667085;">Body • 500</div>
+                    </div>
+                    <div class="hierarchy-item">
+                        <div class="size-14" style="color: #667085;">14</div>
+                        <div style="font-size: 12px; color: #667085;">Small • 500</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Musical Icons & Theme -->
+            <section class="section">
+                <h2>
+                    <div class="icon" style="background: linear-gradient(135deg, #4FD1C5, #F08430); color: white;">🎵</div>
+                    Musical Icons & Theme
+                </h2>
+                <p style="color: #667085; margin-bottom: 24px; text-align: center;">Transform boring bill-splitting into musical language. Make the app memorable and fun to use.</p>
+                
+                <div class="component-preview">
+                    <h4 style="margin-bottom: 16px; color: #1C2120;">Musical Terminology</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <div style="background: rgba(79, 209, 197, 0.1); padding: 16px; border-radius: 12px; text-align: center; border: 1px solid rgba(79, 209, 197, 0.3);">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">🎵</div>
+                            <div style="font-weight: 600; color: #1C2120;">Tracks</div>
+                            <div style="font-size: 0.8rem; color: #667085;">instead of "Groups"</div>
+                        </div>
+                        <div style="background: rgba(79, 209, 197, 0.1); padding: 16px; border-radius: 12px; text-align: center; border: 1px solid rgba(79, 209, 197, 0.3);">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">📱</div>
+                            <div style="font-weight: 600; color: #1C2120;">Hit Record</div>
+                            <div style="font-size: 0.8rem; color: #667085;">instead of "Scan"</div>
+                        </div>
+                        <div style="background: rgba(79, 209, 197, 0.1); padding: 16px; border-radius: 12px; text-align: center; border: 1px solid rgba(79, 209, 197, 0.3);">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">🎶</div>
+                            <div style="font-weight: 600; color: #1C2120;">Beats</div>
+                            <div style="font-size: 0.8rem; color: #667085;">instead of "Items"</div>
+                        </div>
+                        <div style="background: rgba(79, 209, 197, 0.1); padding: 16px; border-radius: 12px; text-align: center; border: 1px solid rgba(79, 209, 197, 0.3);">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">🎧</div>
+                            <div style="font-weight: 600; color: #1C2120;">Get in Sync</div>
+                            <div style="font-size: 0.8rem; color: #667085;">instead of "Settle Up"</div>
+                        </div>
+                        <div style="background: rgba(79, 209, 197, 0.1); padding: 16px; border-radius: 12px; text-align: center; border: 1px solid rgba(79, 209, 197, 0.3);">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">👥</div>
+                            <div style="font-weight: 600; color: #1C2120;">Band</div>
+                            <div style="font-size: 0.8rem; color: #667085;">for frequent contacts</div>
+                        </div>
+                        <div style="background: rgba(79, 209, 197, 0.1); padding: 16px; border-radius: 12px; text-align: center; border: 1px solid rgba(79, 209, 197, 0.3);">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">🎤</div>
+                            <div style="font-weight: 600; color: #1C2120;">Solo</div>
+                            <div style="font-size: 0.8rem; color: #667085;">individual items</div>
+                        </div>
+                        <div style="background: rgba(79, 209, 197, 0.1); padding: 16px; border-radius: 12px; text-align: center; border: 1px solid rgba(79, 209, 197, 0.3);">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">⚡</div>
+                            <div style="font-weight: 600; color: #1C2120;">Quick Split</div>
+                            <div style="font-size: 0.8rem; color: #667085;">fast actions</div>
+                        </div>
+                        <div style="background: rgba(79, 209, 197, 0.1); padding: 16px; border-radius: 12px; text-align: center; border: 1px solid rgba(79, 209, 197, 0.3);">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">🔄</div>
+                            <div style="font-weight: 600; color: #1C2120;">Replay</div>
+                            <div style="font-size: 0.8rem; color: #667085;">repeat order</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Sound Wave Animation -->
+            <section class="section">
+                <h2>
+                    <div class="icon" style="background: linear-gradient(135deg, #4FD1C5, #F08430); color: white;">🎵</div>
+                    Sound Wave Animations
+                </h2>
+                
+                <div class="component-preview">
+                    <h4 style="margin-bottom: 16px; color: #1C2120;">Loading & Sync Indicators</h4>
+                    
+                    <!-- Sound Wave Animation -->
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 3px; margin: 32px 0; background: rgba(255,255,255,0.4); padding: 24px; border-radius: 12px;">
+                        <div style="width: 4px; background: linear-gradient(135deg, #1C2120, #4FD1C5); border-radius: 2px; height: 20px; animation: wave 1.5s infinite ease-in-out;"></div>
+                        <div style="width: 4px; background: linear-gradient(135deg, #1C2120, #4FD1C5); border-radius: 2px; height: 35px; animation: wave 1.5s infinite ease-in-out 0.1s;"></div>
+                        <div style="width: 4px; background: linear-gradient(135deg, #1C2120, #4FD1C5); border-radius: 2px; height: 15px; animation: wave 1.5s infinite ease-in-out 0.2s;"></div>
+                        <div style="width: 4px; background: linear-gradient(135deg, #1C2120, #4FD1C5); border-radius: 2px; height: 40px; animation: wave 1.5s infinite ease-in-out 0.3s;"></div>
+                        <div style="width: 4px; background: linear-gradient(135deg, #1C2120, #4FD1C5); border-radius: 2px; height: 25px; animation: wave 1.5s infinite ease-in-out 0.4s;"></div>
+                        <div style="width: 4px; background: linear-gradient(135deg, #1C2120, #4FD1C5); border-radius: 2px; height: 30px; animation: wave 1.5s infinite ease-in-out 0.5s;"></div>
+                        <div style="width: 4px; background: linear-gradient(135deg, #1C2120, #4FD1C5); border-radius: 2px; height: 20px; animation: wave 1.5s infinite ease-in-out 0.6s;"></div>
+                    </div>
+                    
+                    <p style="text-align: center; color: #667085; font-size: 0.9rem;">Use sound wave animations for loading states, syncing, and musical feedback</p>
+                </div>
+            </section>
+
+            <!-- Shadows & Effects -->
+            <section class="section">
+                <h2>
+                    <div class="icon" style="background: linear-gradient(135deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3));">✨</div>
+                    Shadows & Effects
+                </h2>
+                
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px; color: #1C2120;">Card Shadows</h4>
+                    <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px;">
+                        <strong>Light Shadow</strong><br>
+                        <code style="font-size: 12px; color: #667085;">0 2px 8px rgba(0,0,0,0.08)</code>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.06); margin-bottom: 12px;">
+                        <strong>Medium Shadow</strong><br>
+                        <code style="font-size: 12px; color: #667085;">0 8px 32px rgba(0,0,0,0.06)</code>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.18);">
+                        <strong>Strong Shadow</strong><br>
+                        <code style="font-size: 12px; color: #667085;">0 4px 16px rgba(0,0,0,0.18)</code>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 style="margin-bottom: 12px; color: #1C2120;">Glass Morphism</h4>
+                    <div style="background: rgba(255,255,255,0.06); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.18); padding: 16px; border-radius: 12px; color: white;">
+                        Backdrop blur with subtle transparency creates modern glass effect
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <section style="text-align: center; margin-top: 64px; padding: 32px; background: rgba(255,255,255,0.4); border-radius: 16px; border: 1px solid rgba(255,255,255,0.3);">
+            <h3 style="color: #1C2120; margin-bottom: 16px;">Design Philosophy</h3>
+            <p style="color: #667085; max-width: 600px; margin: 0 auto; line-height: 1.6;">
+                The Split Bill app embraces a clean, modern aesthetic with glass morphism elements and soft gradients. 
+                The design prioritizes usability while maintaining visual elegance through subtle shadows, 
+                thoughtful spacing, and a harmonious color palette that guides user interaction naturally.
+            </p>
+        </section>
+    </div>
+</body>
+</html>

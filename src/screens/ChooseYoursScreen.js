@@ -1,35 +1,27 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../theme/colors';
 import { DropProvider } from 'react-native-reanimated-dnd';
-import { DraggableFoodItem, QuantityModal, PersonCard, BackButton, Title, SwapBarPager, AddFriendsPanel } from '../components';
-import { unassignItemFromPerson, removePersonAndUnassign } from '../services';
-import { foodItems, people, nearbyFriends, getItemAssignmentInfo, handleItemDrop, handleQuantityAssignment } from '../services';
+import { DraggableFoodItem, QuantityModal, PersonCard, BackButton, Title, SwapBarPager } from '../components';
+import { unassignItemFromPerson } from '../services';
+import { foodItems, people, getItemAssignmentInfo, handleItemDrop, handleQuantityAssignment } from '../services';
 
 
 
 
-
-export default function SplitScreen({ navigation }) {
+export default function ChooseYoursScreen({ navigation }) {
   const [assignments, setAssignments] = useState({});
   const [quantityAssignments, setQuantityAssignments] = useState({});
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [pendingAssignment, setPendingAssignment] = useState(null);
   const [isAnyDragging, setIsAnyDragging] = useState(false);
-  // Remount nonce to clear DnD overlays; we'll preserve carousel position manually
   const [dragNonce, setDragNonce] = useState(0);
-  const peopleScrollRef = useRef(null);
-  const peopleScrollXRef = useRef(0);
-  const hasAnimatedOnceRef = useRef(false);
   const [draggedFromPerson, setDraggedFromPerson] = useState(null); // { person, item }
-  const [showAddFriends, setShowAddFriends] = useState(false);
-  const [availableFriends, setAvailableFriends] = useState(nearbyFriends);
-  const [peopleList, setPeopleList] = useState(people);
+  const hasAnimatedOnceRef = useRef(false);
   const [currentPage, setCurrentPage] = useState(0);
   const scrollRef = useRef(null);
-  const [activeDeletePersonId, setActiveDeletePersonId] = useState(null);
 
   // Pagination logic for vertical list
   const itemsPerPage = 4;
@@ -51,24 +43,11 @@ export default function SplitScreen({ navigation }) {
   };
 
   const handleDrop = (draggedItem, targetPerson) => {
-    // If user drops a friend tile from AddFriendsPanel onto the people strip, append a new person
-    if (draggedItem?.type === 'person' && draggedItem?.person) {
-      // Avoid duplicates by name/id
-      const exists = peopleList.some((p) => p.name === draggedItem.person.name || p.id === draggedItem.person.id);
-      if (!exists) {
-        const newPerson = { id: Date.now(), name: draggedItem.person.name, avatar: draggedItem.person.avatar, hasFood: false };
-        setPeopleList((prev) => {
-          const addIdx = Math.max(0, prev.findIndex((p) => p.isAddButton));
-          const arr = prev.slice();
-          arr.splice(addIdx, 0, newPerson);
-          return arr;
-        });
-        setAvailableFriends((prev) => prev.filter((f) => f.id !== draggedItem.person.id));
-      }
-      setShowAddFriends(false);
-      setDragNonce((n) => n + 1);
+    // Only allow drops on "You" person
+    if (targetPerson.name !== 'You') {
       return;
     }
+
     const result = handleItemDrop(
       draggedItem, 
       targetPerson, 
@@ -77,22 +56,15 @@ export default function SplitScreen({ navigation }) {
       (pendingData) => {
         setPendingAssignment(pendingData);
         setShowQuantityModal(true);
-        // Clear any lingering drag preview while the quantity modal is open
-        setDragNonce((n) => n + 1);
       }
     );
     
     if (result.shouldUpdate) {
       setAssignments(result.newAssignments);
-      if (result.newQuantityAssignments) {
-        setQuantityAssignments(result.newQuantityAssignments);
-      }
-      // A successful drop consumed the drag, clear the dragged-from state
-      setDraggedFromPerson(null);
     }
-    // Always clear any lingering drag preview after drop
-    requestAnimationFrame(() => setDragNonce((n) => n + 1));
 
+    // Force a provider refresh to ensure any temporary drag previews are cleaned up
+    setDragNonce((n) => n + 1);
   };
 
   const handleQuantityConfirm = (quantity) => {
@@ -110,8 +82,6 @@ export default function SplitScreen({ navigation }) {
     
     setShowQuantityModal(false);
     setPendingAssignment(null);
-    // Also clear any temporary previews after confirming quantity
-    requestAnimationFrame(() => setDragNonce((n) => n + 1));
   };
 
   const handleQuantityCancel = () => {
@@ -127,46 +97,8 @@ export default function SplitScreen({ navigation }) {
     hasAnimatedOnceRef.current = true;
   }, []);
 
-  // After provider remount, restore people carousel scroll offset
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      if (peopleScrollRef.current) {
-        try {
-          peopleScrollRef.current.scrollTo({ x: peopleScrollXRef.current, animated: false });
-        } catch (_) {}
-      }
-    });
-  }, [dragNonce]);
-
-
-  // Cancel delete mode for all cards
-  const cancelAllDeleteModes = useCallback(() => {
-    if (activeDeletePersonId !== null) {
-      setActiveDeletePersonId(null);
-    }
-  }, [activeDeletePersonId]);
-
-  // Memoize the onRemove callback to prevent unnecessary re-renders
-  const handleRemovePerson = useCallback((p) => {
-    if (p.name === 'You' || p.isAddButton) {
-      return;
-    }
-    
-    const result = removePersonAndUnassign(p, assignments, quantityAssignments);
-    if (result.shouldUpdate) {
-      setAssignments(result.newAssignments);
-      setQuantityAssignments(result.newQuantityAssignments);
-    }
-    
-    // Remove from people list (immutable)
-    setPeopleList((prev) => prev.filter((pp) => pp.id !== p.id));
-    
-    // Clear delete mode
-    setActiveDeletePersonId(null);
-  }, [peopleList, assignments, quantityAssignments]);
-
   return (
-    <DropProvider key={`provider-${dragNonce}`}>
+    <DropProvider key={`provider-${assignedItemIds.length}-${dragNonce}`}>
       <SafeAreaView style={styles.container}>
         <View pointerEvents="none" style={styles.backgroundLayer}>
           <LinearGradient
@@ -177,20 +109,14 @@ export default function SplitScreen({ navigation }) {
             style={styles.bgGradient}
           />
         </View>
-        <ScrollView
-          ref={scrollRef}
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={!isAnyDragging}
-        >
+        <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} scrollEnabled={!isAnyDragging}>
           <View style={styles.headerRow}>
             <BackButton style={styles.backInline} onPress={() => navigation.goBack()} />
-            <Title boldText="Split" regularText=" order" style={styles.titleInline} />
+            <Title boldText="Choose" regularText=" yours" style={styles.titleInline} />
           </View>
           <View style={styles.hintRow}>
             <Ionicons name="hand-right" size={14} color={'rgba(79, 209, 197, 0.8)'} />
-            <Text style={styles.hintText}>Drag a dish image onto a person to assign</Text>
+            <Text style={styles.hintText}>Drag a dish image onto your card to assign</Text>
           </View>
           
           <View style={[styles.foodItemsContainer, isAnyDragging && styles.foodItemsContainerDragging]}>
@@ -225,41 +151,28 @@ export default function SplitScreen({ navigation }) {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.peopleContainer}
             style={styles.peopleScrollView}
-            ref={peopleScrollRef}
             scrollEnabled={!isAnyDragging}
             nestedScrollEnabled={false}
-            onScroll={(e) => { peopleScrollXRef.current = e.nativeEvent.contentOffset.x; }}
-            scrollEventThrottle={16}
           >
-            {peopleList.map((person, idx) => (
+            {people.map((person, idx) => (
               <PersonCard
-                key={`person-${person.id}-${person.name}`}
+                key={person.id}
                 index={idx}
                 shouldAnimateEntrance={!hasAnimatedOnceRef.current}
                 person={person}
                 assignments={assignments}
                 onDrop={handleDrop}
-                onAddPress={() => setShowAddFriends(true)}
-                onDeleteModeChange={(personId, active) => {
-                  if (active) {
-                    // Only one person can be in delete mode at a time
-                    setActiveDeletePersonId(personId);
-                  } else {
-                    if (activeDeletePersonId === personId) {
-                      setActiveDeletePersonId(null);
-                    }
-                  }
-                }}
-                deleteMode={activeDeletePersonId === person.id}
-                onRemove={handleRemovePerson}
                 // When a drag starts inside a person card
                 onStartDrag={(payload) => {
-                  setDraggedFromPerson(payload); // { person, item }
+                  // Only allow dragging from "You" person
+                  if (payload.person.name === 'You') {
+                    setDraggedFromPerson(payload); // { person, item }
+                  }
                 }}
                 // When drag ends, handle auto-unassign if not dropped on valid target
                 onEndDrag={() => {
                   // If we have a dragged item and it wasn't consumed by a valid drop, unassign it
-                  if (draggedFromPerson) {
+                  if (draggedFromPerson && draggedFromPerson.person.name === 'You') {
                     const result = unassignItemFromPerson(
                       draggedFromPerson.person,
                       draggedFromPerson.item,
@@ -275,6 +188,9 @@ export default function SplitScreen({ navigation }) {
                 }}
                 getItemAssignmentInfo={(itemId) => getItemAssignmentInfo(itemId, assignments)}
                 quantityAssignments={quantityAssignments}
+                // Disable interaction for non-You cards including Add Person button
+                disabled={person.name !== 'You'}
+                grayed={person.name !== 'You'}
               />
             ))}
           </ScrollView>
@@ -287,13 +203,6 @@ export default function SplitScreen({ navigation }) {
           maxQuantity={pendingAssignment?.maxQuantity}
           onConfirm={handleQuantityConfirm}
           onCancel={handleQuantityCancel}
-        />
-        <AddFriendsPanel
-          visible={showAddFriends}
-          friends={availableFriends}
-          onClose={() => setShowAddFriends(false)}
-          onStartDrag={() => setIsAnyDragging(true)}
-          onEndDrag={() => setIsAnyDragging(false)}
         />
       </SafeAreaView>
     </DropProvider>
@@ -333,17 +242,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
-  },
-  addFriendsBtn: {
-    marginLeft: 'auto',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   backInline: {
     marginBottom: 0,

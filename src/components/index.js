@@ -3,3 +3,5 @@ export { default as DraggableFoodItem } from './DraggableFoodItem';
 export { default as PersonCard } from './PersonCard';
 export { default as QuantityModal } from './QuantityModal';
 export { default as Title } from './Title';
+export { default as SwapBarPager } from './SwapBarPager';
+export { default as AddFriendsPanel } from './AddFriendsPanel';

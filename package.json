@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "start": "expo start --host lan --port 8082",
+    "android": "expo start --android --host lan --port 8082",
+    "ios": "expo start --ios --host lan --port 8082",
+    "web": "expo start --web --host lan --port 8082"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -14,6 +14,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@expo/metro-runtime": "~5.0.4",
     "expo": "~53.0.20",
+    "expo-blur": "~14.1.5",
+    "expo-linear-gradient": "~14.1.5",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -21,6 +23,7 @@
     "react-native-gesture-handler": "^2.28.0",
     "react-native-reanimated": "^3.19.0",
     "react-native-reanimated-dnd": "^1.1.0",
+    "react-native-timeline-flatlist": "^0.8.0",
     "react-native-web": "^0.20.0"
   },
   "devDependencies": {
