@@ -5,3 +5,5 @@ export { default as QuantityModal } from './QuantityModal';
 export { default as Title } from './Title';
 export { default as SwapBarPager } from './SwapBarPager';
 export { default as AddFriendsPanel } from './AddFriendsPanel';
+export { default as AuthInput } from './AuthInput';
+export { default as AuthButton } from './AuthButton';

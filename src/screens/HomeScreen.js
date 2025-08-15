@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { SafeAreaView, View, StyleSheet, Text, Image, Dimensions, TouchableOpacity } from 'react-native';
+import { SafeAreaView, View, StyleSheet, Text, Image, Dimensions, TouchableOpacity, Alert, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Timeline from 'react-native-timeline-flatlist';
 import Colors from '../theme/colors';
+import { useAuth } from '../context/AuthContext';
 
 const HEADER_EXPANDED_HEIGHT = 132;
 const HEADER_COLLAPSED_HEIGHT = 72;
@@ -22,11 +23,39 @@ const TIMELINE_CARD_PADDING_TOP = 6; // matches styles.card paddingVertical top
 const TIMELINE_CIRCLE_TOP = TIMELINE_CARD_PADDING_TOP + (TIMELINE_TITLE_LINE_HEIGHT - TIMELINE_CIRCLE_SIZE) / 2;
 
 export default function HomeScreen({ navigation }) {
+  const { signOut, user } = useAuth();
   const scrollY = useSharedValue(0);
   const [titleWidth, setTitleWidth] = useState(0);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const screenWidth = Dimensions.get('window').width;
   const sidePadding = 20;
   const centerShift = Math.max(0, screenWidth / 2 - titleWidth / 2 - sidePadding);
+
+  const handleLogout = () => {
+    console.log('handleLogout called - showing custom modal');
+    setShowLogoutModal(true);
+  };
+
+  const performLogout = async () => {
+    console.log('User confirmed logout - starting sign out process...');
+    setShowLogoutModal(false);
+    try {
+      const { error } = await signOut();
+      if (error) {
+        console.log('Logout error:', error);
+      } else {
+        console.log('Logout successful - should navigate to login screen');
+        // The auth context should handle the navigation automatically
+      }
+    } catch (error) {
+      console.log('Logout exception:', error);
+    }
+  };
+
+  const cancelLogout = () => {
+    console.log('Logout cancelled by user');
+    setShowLogoutModal(false);
+  };
 
   const onScroll = useAnimatedScrollHandler({
     onScroll: (e) => {
@@ -308,7 +337,7 @@ export default function HomeScreen({ navigation }) {
         />
       </View>
 
-      <Animated.View style={[styles.header, headerAnimatedStyle]}>
+      <Animated.View style={[styles.header, headerAnimatedStyle]} pointerEvents="box-none">
         {/* Opaque header background to prevent timeline showing through */}
         <LinearGradient
           pointerEvents="none"
@@ -318,9 +347,29 @@ export default function HomeScreen({ navigation }) {
           end={{ x: 0, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <View style={styles.topIconsRow}>
-          <Ionicons name="notifications-outline" size={22} color={Colors.textOnLightPrimary} />
-          <Ionicons name="settings-outline" size={22} color={Colors.textOnLightPrimary} />
+        <View style={styles.topIconsRow} pointerEvents="box-none">
+          <View style={styles.leftIcons}>
+            <Text style={styles.welcomeText}>Hi, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}!</Text>
+          </View>
+          <View style={styles.rightIcons}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Ionicons name="notifications-outline" size={22} color={Colors.textOnLightPrimary} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Ionicons name="settings-outline" size={22} color={Colors.textOnLightPrimary} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.iconButton, styles.logoutButton]} 
+              onPress={() => {
+                console.log('Logout button touched!');
+                handleLogout();
+              }}
+              activeOpacity={0.5}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="log-out-outline" size={22} color={Colors.textOnLightPrimary} />
+            </TouchableOpacity>
+          </View>
         </View>
         <Animated.View style={[styles.titleContainer, titleContainerStyle]}>
           <Text style={styles.title} onLayout={(e) => setTitleWidth(e.nativeEvent.layout.width)}>Hangouts</Text>
@@ -398,6 +447,39 @@ export default function HomeScreen({ navigation }) {
           <Ionicons name="scan" size={26} color={Colors.textOnLightPrimary} />
         </TouchableOpacity>
       </View>
+
+      {/* Custom Logout Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={cancelLogout}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Sign Out</Text>
+            <Text style={styles.modalMessage}>Are you sure you want to sign out?</Text>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]} 
+                onPress={cancelLogout}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.confirmButton]} 
+                onPress={performLogout}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.confirmButtonText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -437,6 +519,94 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  leftIcons: {
+    flex: 1,
+  },
+  rightIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconButton: {
+    padding: 8,
+    minWidth: 40,
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+  },
+  welcomeText: {
+    fontSize: 14,
+    color: Colors.textOnLightPrimary,
+    fontWeight: '500',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 320,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.textOnLightPrimary,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: Colors.textOnLightSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButton: {
+    backgroundColor: Colors.cardMid,
+    borderWidth: 1,
+    borderColor: Colors.personCardOutline,
+  },
+  confirmButton: {
+    backgroundColor: '#EF4444',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textOnLightPrimary,
+  },
+  confirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
   },
   titleContainer: {
     alignSelf: 'flex-start',

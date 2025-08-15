@@ -3,3 +3,7 @@ export { default as ChooseYoursScreen } from './ChooseYoursScreen';
 export { default as TestNavigationScreen } from './TestNavigationScreen';
 export { default as HomeScreen } from './HomeScreen';
 export { default as BillDetailsScreen } from './BillDetailsScreen';
+export { default as LoginScreen } from './LoginScreen';
+export { default as SignUpScreen } from './SignUpScreen';
+export { default as ForgotPasswordScreen } from './ForgotPasswordScreen';
+export { default as EmailConfirmationScreen } from './EmailConfirmationScreen';
