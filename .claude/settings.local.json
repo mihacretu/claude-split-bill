@@ -7,7 +7,12 @@
       "Bash(npm start)",
       "Bash(npm start:*)",
       "Bash(npm uninstall:*)",
-      "WebFetch(domain:react-native-reanimated-dnd.netlify.app)"
+      "WebFetch(domain:react-native-reanimated-dnd.netlify.app)",
+      "Bash(npm run start:*)",
+      "Bash(expo start:*)",
+      "Bash(npx expo start:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell:*)"
     ],
     "deny": []
   }

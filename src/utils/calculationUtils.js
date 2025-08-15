@@ -1,6 +1,6 @@
 export const calculatePersonTotal = (person, assignedItems, quantityAssignments, assignments) => {
   const assignedTotal = assignedItems.reduce((sum, item) => {
-    const price = parseFloat(item.price.replace('$', '')) || 0;
+    const price = typeof item.price === 'string' ? parseFloat(item.price.replace('$', '')) : (parseFloat(item.price) || 0);
     const personQuantity = quantityAssignments[item.id]?.[person.id] || 1;
     
     if (item.quantity > 1) {

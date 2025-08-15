@@ -68,6 +68,40 @@ export default function HomeScreen({ navigation }) {
             <Image source={{ uri: 'https://i.pravatar.cc/36?img=13' }} style={styles.avatar} />
           </View>
         ),
+        bill: {
+          time: '03/28',
+          title: 'Steak House',
+          description: 'You owe $20.50 to Tom',
+          paidBy: 'Tom',
+          participants: [
+            { 
+              id: 1, 
+              name: 'You', 
+              avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face', 
+              items: [
+                { id: 'it-1', name: 'Roasted Potato Salad', price: 15, quantity: 1 },
+                { id: 'it-2', name: 'Orange Juice', price: 8, quantity: 2 },
+                { id: 'it-3', name: 'Croissant', price: 7.5, quantity: 1 },
+                { id: 'it-4', name: 'Fries', price: 3.5, quantity: 2 },
+                { id: 'it-5', name: 'Cappuccino', price: 5.5, quantity: 1 }
+              ], 
+              netBalance: -20.5,
+              paymentStatus: 'pending'
+            },
+            { 
+              id: 2, 
+              name: 'Tom', 
+              avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face', 
+              items: [
+                { id: 'it-6', name: 'Grilled Salmon', price: 22, quantity: 1 },
+                { id: 'it-7', name: 'Caesar Salad', price: 12.5, quantity: 1 },
+                { id: 'it-8', name: 'Chocolate Cake', price: 9, quantity: 1 }
+              ], 
+              netBalance: 20.5,
+              paymentStatus: 'paid'
+            },
+          ]
+        }
       },
       {
         time: '03/19',
@@ -80,6 +114,17 @@ export default function HomeScreen({ navigation }) {
             <Image source={{ uri: 'https://i.pravatar.cc/36?img=9' }} style={styles.avatar} />
           </View>
         ),
+        bill: {
+          time: '03/19',
+          title: 'Pizza Kingdom',
+          description: 'Left to receive $28.50',
+          paidBy: 'You',
+          participants: [
+            { id: 1, name: 'You', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face', items: [{ id: 'it-3', name: 'Margherita Pizza', price: 16.5, quantity: 1 }], netBalance: 28.5, paymentStatus: 'paid' },
+            { id: 3, name: 'Jessica', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face', items: [{ id: 'it-4', name: 'Orange Juice', price: 8, quantity: 1 }], netBalance: -10, paymentStatus: 'pending' },
+            { id: 4, name: 'Alex', avatar: 'https://i.pravatar.cc/36?img=9', items: [{ id: 'it-5', name: 'Chocolate Cake', price: 9, quantity: 1 }], netBalance: -9.5, paymentStatus: 'settled' },
+          ]
+        }
       },
       {
         time: '03/12',
@@ -236,14 +281,18 @@ export default function HomeScreen({ navigation }) {
 
   const renderDetail = (rowData) => {
     return (
-      <View style={styles.card}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => navigation?.navigate?.('BillDetailsScreen', { bill: rowData.bill })}
+        style={styles.card}
+      >
         <View style={styles.cardHeader}>
           <Ionicons name="location" size={16} color={Colors.textOnLightPrimary} style={{ marginRight: 6 }} />
           <Text style={styles.cardTitle}>{rowData.title}</Text>
         </View>
         {rowData.icon}
         <Text style={styles.cardSubtitle}>{rowData.description}</Text>
-      </View>
+      </TouchableOpacity>
     );
   };
 
