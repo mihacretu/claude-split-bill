@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { SafeAreaView, View, StyleSheet, Text, Image, Dimensions, TouchableOpacity, Alert, Modal } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { SafeAreaView, View, StyleSheet, Text, Image, Dimensions, TouchableOpacity, Alert, Modal, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -12,6 +12,7 @@ import Animated, {
 import Timeline from 'react-native-timeline-flatlist';
 import Colors from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
+import { useBackendServices } from '../../lib/backend-integration';
 
 const HEADER_EXPANDED_HEIGHT = 132;
 const HEADER_COLLAPSED_HEIGHT = 72;
@@ -27,6 +28,9 @@ export default function HomeScreen({ navigation }) {
   const scrollY = useSharedValue(0);
   const [titleWidth, setTitleWidth] = useState(0);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [hangouts, setHangouts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const screenWidth = Dimensions.get('window').width;
   const sidePadding = 20;
   const centerShift = Math.max(0, screenWidth / 2 - titleWidth / 2 - sidePadding);
@@ -57,6 +61,111 @@ export default function HomeScreen({ navigation }) {
     setShowLogoutModal(false);
   };
 
+  // Fetch hangouts data from backend
+  const fetchHangouts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('🔄 Fetching hangouts for user:', user?.id);
+      console.log('🔄 User object:', JSON.stringify(user, null, 2));
+      
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      const services = await useBackendServices();
+      if (!services) {
+        throw new Error('Backend services not available. Please check your connection.');
+      }
+
+      const result = await services.hangoutService.getUserHangouts(user.id, {
+        limit: 50,
+        offset: 0
+      });
+
+      console.log('✅ Fetched hangouts:', result);
+      
+      if (result && result.data) {
+        setHangouts(result.data);
+      } else {
+        console.warn('No data returned from hangout service');
+        setHangouts([]);
+      }
+      
+    } catch (err) {
+      console.error('❌ Error fetching hangouts:', err);
+      
+      // Provide more user-friendly error messages
+      let errorMessage = 'Failed to load hangouts';
+      
+      if (err.message.includes('not authenticated')) {
+        errorMessage = 'Please sign in to view your hangouts';
+      } else if (err.message.includes('Backend services not available')) {
+        errorMessage = 'Connection problem. Please check your internet connection.';
+      } else if (err.message.includes('500')) {
+        errorMessage = 'Server error. Please try again in a moment.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+      setHangouts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load hangouts when component mounts or user changes
+  useEffect(() => {
+    if (user?.id) {
+      fetchHangouts();
+    }
+  }, [user?.id]);
+
+  // Helper function to format date for timeline
+  const formatTimelineDate = (dateString) => {
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${month}/${day}`;
+  };
+
+  // Helper function to generate participant avatars
+  const generateParticipantAvatars = (hangout) => {
+    // For now, use placeholder avatars - in a real app you'd use actual participant data
+    const avatarIds = [5, 12, 13, 14, 15, 16, 20, 21, 22];
+    const numAvatars = Math.min(3, hangout.participants_count || 1);
+    
+    return (
+      <View style={styles.avatarRow}>
+        {Array.from({ length: numAvatars }, (_, index) => (
+          <Image 
+            key={index}
+            source={{ uri: `https://i.pravatar.cc/36?img=${avatarIds[index % avatarIds.length]}` }} 
+            style={styles.avatar} 
+          />
+        ))}
+      </View>
+    );
+  };
+
+  // Helper function to generate description based on bill status
+  const generateDescription = (hangout) => {
+    if (!hangout.has_bill) {
+      return 'No bill added yet';
+    }
+
+    const total = hangout.bill_total || 0;
+    
+    // Simple logic - in a real app you'd calculate actual user balance
+    if (hangout.bill_status === 'settled') {
+      return 'All settled up! ✅';
+    } else {
+      return `Bill total: $${total.toFixed(2)}`;
+    }
+  };
+
   const onScroll = useAnimatedScrollHandler({
     onScroll: (e) => {
       scrollY.value = e.contentOffset.y;
@@ -84,235 +193,43 @@ export default function HomeScreen({ navigation }) {
     return { opacity, width };
   });
 
-  const data = useMemo(
-    () => [
-      {
-        time: '03/28',
-        title: 'Steak House',
-        description: 'You owe $20.50 to Tom',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=5' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=12' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=13' }} style={styles.avatar} />
-          </View>
-        ),
-        bill: {
-          time: '03/28',
-          title: 'Steak House',
-          description: 'You owe $20.50 to Tom',
-          paidBy: 'Tom',
-          participants: [
-            { 
-              id: 1, 
-              name: 'You', 
-              avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face', 
-              items: [
-                { id: 'it-1', name: 'Roasted Potato Salad', price: 15, quantity: 1 },
-                { id: 'it-2', name: 'Orange Juice', price: 8, quantity: 2 },
-                { id: 'it-3', name: 'Croissant', price: 7.5, quantity: 1 },
-                { id: 'it-4', name: 'Fries', price: 3.5, quantity: 2 },
-                { id: 'it-5', name: 'Cappuccino', price: 5.5, quantity: 1 }
-              ], 
-              netBalance: -20.5,
-              paymentStatus: 'pending'
-            },
-            { 
-              id: 2, 
-              name: 'Tom', 
-              avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face', 
-              items: [
-                { id: 'it-6', name: 'Grilled Salmon', price: 22, quantity: 1 },
-                { id: 'it-7', name: 'Caesar Salad', price: 12.5, quantity: 1 },
-                { id: 'it-8', name: 'Chocolate Cake', price: 9, quantity: 1 }
-              ], 
-              netBalance: 20.5,
-              paymentStatus: 'paid'
-            },
-          ]
-        }
-      },
-      {
-        time: '03/19',
-        title: 'Pizza Kingdom',
-        description: 'Left to receive $28.50',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=2' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=7' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=9' }} style={styles.avatar} />
-          </View>
-        ),
-        bill: {
-          time: '03/19',
-          title: 'Pizza Kingdom',
-          description: 'Left to receive $28.50',
-          paidBy: 'You',
-          participants: [
-            { id: 1, name: 'You', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face', items: [{ id: 'it-3', name: 'Margherita Pizza', price: 16.5, quantity: 1 }], netBalance: 28.5, paymentStatus: 'paid' },
-            { id: 3, name: 'Jessica', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face', items: [{ id: 'it-4', name: 'Orange Juice', price: 8, quantity: 1 }], netBalance: -10, paymentStatus: 'pending' },
-            { id: 4, name: 'Alex', avatar: 'https://i.pravatar.cc/36?img=9', items: [{ id: 'it-5', name: 'Chocolate Cake', price: 9, quantity: 1 }], netBalance: -9.5, paymentStatus: 'settled' },
-          ]
-        }
-      },
-      {
-        time: '03/12',
-        title: 'Nobu Sushi',
-        description: 'You owe $5.00 to Dmitry',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=14' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=15' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=16' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '03/10',
-        title: 'Cafe Aroma',
-        description: 'You received $12.00 from Alex',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=20' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=21' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '03/08',
-        title: 'Burger Joint',
-        description: 'Left to receive $8.75',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=11' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=22' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=23' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '03/06',
-        title: 'Vegan Garden',
-        description: 'You owe $9.20 to Mia',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=24' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=25' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '03/05',
-        title: 'BBQ Shack',
-        description: 'You received $14.80 from Sam',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=26' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=27' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=28' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '03/03',
-        title: 'Tacos El Rey',
-        description: 'You owe $6.40 to Luis',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=29' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=30' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '03/02',
-        title: 'Pasta Palace',
-        description: 'Left to receive $19.10',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=31' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=32' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=33' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '02/28',
-        title: 'Curry Corner',
-        description: 'You owe $7.95 to Priya',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=34' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=35' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '02/25',
-        title: 'Bagel Bros',
-        description: 'You received $4.60 from Emma',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=36' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=37' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '02/22',
-        title: 'Ramen Place',
-        description: 'Left to receive $11.30',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=38' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=39' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=40' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '02/20',
-        title: 'Dumpling Den',
-        description: 'You owe $10.25 to Chen',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=41' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=42' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '02/17',
-        title: 'Bistro 21',
-        description: 'You received $16.40 from Zoe',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=43' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=44' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-      {
-        time: '02/14',
-        title: 'Kebab House',
-        description: 'Left to receive $23.90',
-        icon: (
-          <View style={styles.avatarRow}>
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=45' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=46' }} style={styles.avatar} />
-            <Image source={{ uri: 'https://i.pravatar.cc/36?img=47' }} style={styles.avatar} />
-          </View>
-        ),
-      },
-    ],
-    []
-  );
+  // Transform hangouts data for timeline display
+  const data = useMemo(() => {
+    if (loading || !hangouts.length) {
+      return [];
+    }
+
+    return hangouts.map(hangout => ({
+      time: formatTimelineDate(hangout.hangout_date || hangout.created_at),
+      title: hangout.location_name || hangout.title,
+      description: generateDescription(hangout),
+      icon: generateParticipantAvatars(hangout),
+      hangout: hangout, // Store the full hangout data for navigation
+      bill: hangout.has_bill ? {
+        id: hangout.id,
+        time: formatTimelineDate(hangout.hangout_date || hangout.created_at),
+        title: hangout.location_name || hangout.title,
+        description: generateDescription(hangout),
+        total: hangout.bill_total,
+        status: hangout.bill_status,
+        // Add more bill details as needed
+      } : null
+    }));
+  }, [hangouts, loading]);
 
   const renderDetail = (rowData) => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => navigation?.navigate?.('BillDetailsScreen', { bill: rowData.bill })}
+        onPress={() => {
+          if (rowData.bill) {
+            navigation?.navigate?.('BillDetailsScreen', { bill: rowData.bill });
+          } else {
+            console.log('Navigate to hangout details:', rowData.hangout);
+            // You can navigate to a hangout details screen here
+            // navigation?.navigate?.('HangoutDetailsScreen', { hangout: rowData.hangout });
+          }
+        }}
         style={styles.card}
       >
         <View style={styles.cardHeader}>
@@ -324,6 +241,41 @@ export default function HomeScreen({ navigation }) {
       </TouchableOpacity>
     );
   };
+
+  // Render loading state
+  const renderLoadingState = () => (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color={Colors.accentBlue} />
+      <Text style={styles.loadingText}>Loading your hangouts...</Text>
+    </View>
+  );
+
+  // Render error state
+  const renderErrorState = () => (
+    <View style={styles.errorContainer}>
+      <Ionicons name="alert-circle-outline" size={48} color={Colors.textOnLightSecondary} />
+      <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+      <Text style={styles.errorMessage}>{error}</Text>
+      <TouchableOpacity style={styles.retryButton} onPress={fetchHangouts}>
+        <Text style={styles.retryButtonText}>Try Again</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Render empty state
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="restaurant-outline" size={48} color={Colors.textOnLightSecondary} />
+      <Text style={styles.emptyTitle}>No hangouts yet!</Text>
+      <Text style={styles.emptyMessage}>Start by creating your first hangout and splitting a bill with friends.</Text>
+      <TouchableOpacity 
+        style={styles.createButton} 
+        onPress={() => navigation?.navigate?.('TestNavigation')}
+      >
+        <Text style={styles.createButtonText}>Create Hangout</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -396,22 +348,30 @@ export default function HomeScreen({ navigation }) {
         scrollEventThrottle={1}
       >
         <View style={styles.timelineContainer}>
-          <Timeline
-            data={data}
-            circleSize={TIMELINE_CIRCLE_SIZE}
-            showTime
-            timeStyle={styles.timeLabel}
-            timeContainerStyle={styles.timeContainer}
-            lineColor={Colors.personCardStroke}
-            circleColor={Colors.personCardStroke}
-            dotColor={Colors.personCardStroke}
-            innerCircle={'dot'}
-            circleStyle={styles.circleAlign}
-            eventDetailStyle={{ paddingTop: 0, paddingBottom: 6 }}
-            renderDetail={renderDetail}
-            options={{ showsVerticalScrollIndicator: false }}
-            isUsingFlatlist={false}
-          />
+          {loading ? (
+            renderLoadingState()
+          ) : error ? (
+            renderErrorState()
+          ) : data.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            <Timeline
+              data={data}
+              circleSize={TIMELINE_CIRCLE_SIZE}
+              showTime
+              timeStyle={styles.timeLabel}
+              timeContainerStyle={styles.timeContainer}
+              lineColor={Colors.personCardStroke}
+              circleColor={Colors.personCardStroke}
+              dotColor={Colors.personCardStroke}
+              innerCircle={'dot'}
+              circleStyle={styles.circleAlign}
+              eventDetailStyle={{ paddingTop: 0, paddingBottom: 6 }}
+              renderDetail={renderDetail}
+              options={{ showsVerticalScrollIndicator: false }}
+              isUsingFlatlist={false}
+            />
+          )}
         </View>
       </Animated.ScrollView>
 
@@ -745,6 +705,87 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 8,
     zIndex: 2,
+  },
+  // Loading state styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: Colors.textOnLightSecondary,
+    textAlign: 'center',
+  },
+  // Error state styles
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+  },
+  errorTitle: {
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.textOnLightPrimary,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    marginTop: 8,
+    fontSize: 14,
+    color: Colors.textOnLightSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  retryButton: {
+    marginTop: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: Colors.accentBlue,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  },
+  // Empty state styles
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+  },
+  emptyTitle: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.textOnLightPrimary,
+    textAlign: 'center',
+  },
+  emptyMessage: {
+    marginTop: 8,
+    fontSize: 16,
+    color: Colors.textOnLightSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  createButton: {
+    marginTop: 24,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    backgroundColor: Colors.accentBlue,
+    borderRadius: 12,
+  },
+  createButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
   },
 });
 

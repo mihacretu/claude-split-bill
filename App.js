@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { 
@@ -13,6 +13,7 @@ import {
   EmailConfirmationScreen
 } from './src/screens';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { setupBackendAuthListener } from './lib/backend-integration';
 
 // Main authenticated app component
 function AuthenticatedApp() {
@@ -114,6 +115,13 @@ function AppRouter() {
 
 // Main App component with AuthProvider
 export default function App() {
+  // Initialize backend auth listener on app start
+  useEffect(() => {
+    console.log('🚀 Initializing Claude Split Bill App');
+    setupBackendAuthListener();
+    console.log('✅ Backend auth listener setup complete');
+  }, []);
+
   return (
     <AuthProvider>
       <AppRouter />
